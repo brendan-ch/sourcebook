@@ -1,12 +1,11 @@
 import unittest
 import mysql.connector
 from testcontainers.mysql import MySqlContainer
+from pathlib import Path
 
 class TestContainerSample(unittest.TestCase):
-    # Try to open a MySQL test container and run a query in it
-    # Perform validation on the query
-
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.mysql_container = MySqlContainer('mysql:5.7.17')
         self.mysql_container.start()
 
@@ -25,12 +24,43 @@ class TestContainerSample(unittest.TestCase):
             ssl_disabled=True
         )
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(self):
         self.connection.close()
         self.mysql_container.stop()
 
-    def test_select_query(self):
+    def setUp(self):
+        project_root = Path(__file__).resolve().parent.parent
+        setup_sql_schema_path = project_root / 'sql' / 'setup_schema.sql'
+
+        with setup_sql_schema_path.open('r') as f:
+            sql_commands = f.read().split(';')
+            cursor = self.connection.cursor()
+            for command in sql_commands:
+                if command:
+                    cursor.execute(command)
+            self.connection.commit()
+
+    def tearDown(self):
+        project_root = Path(__file__).resolve().parent.parent
+        teardown_sql_file_path = project_root / 'sql' / 'teardown_schema.sql'
+
+        with teardown_sql_file_path.open('r') as f:
+            sql_commands = f.read().split(';')
+            cursor = self.connection.cursor()
+            for command in sql_commands:
+                if command:
+                    cursor.execute(command)
+            self.connection.commit()
+
+    def test_first_select_query(self):
         cursor = self.connection.cursor()
         cursor.execute("SELECT 'Hello World';")
         result = cursor.fetchone()
         self.assertEqual(result[0], 'Hello World')
+
+    def test_second_select_query(self):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT 1;")
+        result = cursor.fetchone()
+        self.assertEqual(result[0], 1)
