@@ -6,14 +6,14 @@ from pathlib import Path
 class TestContainerSample(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.mysql_container = MySqlContainer('mysql:5.7.17')
+        self.mysql_container = MySqlContainer('mysql:9.0.1')
         self.mysql_container.start()
 
         host = self.mysql_container.get_container_host_ip()
         port = self.mysql_container.get_exposed_port(3306)
-        user = self.mysql_container.MYSQL_USER
-        password = self.mysql_container.MYSQL_PASSWORD
-        database = self.mysql_container.MYSQL_DATABASE
+        user = self.mysql_container.username
+        password = self.mysql_container.password
+        database = self.mysql_container.dbname
 
         self.connection = mysql.connector.connect(
             host=host,
@@ -21,7 +21,6 @@ class TestContainerSample(unittest.TestCase):
             user=user,
             password=password,
             database=database,
-            ssl_disabled=True
         )
 
     @classmethod
