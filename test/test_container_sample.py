@@ -8,17 +8,17 @@ from config import TEST_CONTAINER_IMAGE
 
 class TestContainerSample(unittest.TestCase):
     @classmethod
-    def setUpClass(self):
-        self.mysql_container = MySqlContainer(TEST_CONTAINER_IMAGE)
-        self.mysql_container.start()
+    def setUpClass(cls):
+        cls.mysql_container = MySqlContainer(TEST_CONTAINER_IMAGE)
+        cls.mysql_container.start()
 
-        host = self.mysql_container.get_container_host_ip()
-        port = self.mysql_container.get_exposed_port(3306)
-        user = self.mysql_container.username
-        password = self.mysql_container.password
-        database = self.mysql_container.dbname
+        host = cls.mysql_container.get_container_host_ip()
+        port = cls.mysql_container.get_exposed_port(3306)
+        user = cls.mysql_container.username
+        password = cls.mysql_container.password
+        database = cls.mysql_container.dbname
 
-        self.connection = mysql.connector.connect(
+        cls.connection = mysql.connector.connect(
             host=host,
             port=port,
             user=user,
@@ -27,9 +27,9 @@ class TestContainerSample(unittest.TestCase):
         )
 
     @classmethod
-    def tearDownClass(self):
-        self.connection.close()
-        self.mysql_container.stop()
+    def tearDownClass(cls):
+        cls.connection.close()
+        cls.mysql_container.stop()
 
     def setUp(self):
         project_root = Path(__file__).resolve().parent.parent
