@@ -1,3 +1,12 @@
+CREATE TABLE class_term (
+    class_term_id CHAR(36) PRIMARY KEY,
+    title VARCHAR(64) NOT NULL,
+    position INT NOT NULL,
+
+    -- whether to display associated classes on the starting page
+    start_date DATETIME
+);
+
 CREATE TABLE class (
     class_id CHAR(36) PRIMARY KEY,
     title VARCHAR(64) NOT NULL,
@@ -9,15 +18,6 @@ CREATE TABLE class (
     starting_url_path VARCHAR(128) UNIQUE NOT NULL,
 
     FOREIGN KEY (class_term_id) REFERENCES class_term(class_term_id)
-);
-
-CREATE TABLE class_term (
-    class_term_id CHAR(36) PRIMARY KEY,
-    title VARCHAR(64) NOT NULL,
-    position INT NOT NULL,
-
-    -- whether to display associated classes on the starting page
-    start_date DATETIME
 );
 
 CREATE TABLE user (
@@ -54,7 +54,7 @@ CREATE TABLE page (
 
 CREATE TABLE file (
     file_id VARCHAR(128) PRIMARY KEY,
-    filepath TEXT UNIQUE NOT NULL,
+    filepath VARCHAR(128) UNIQUE NOT NULL,
     uploaded_by_user_id VARCHAR(128),
 
     FOREIGN KEY (uploaded_by_user_id) REFERENCES user(user_id)
