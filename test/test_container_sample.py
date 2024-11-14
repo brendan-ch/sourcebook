@@ -3,10 +3,13 @@ import mysql.connector
 from testcontainers.mysql import MySqlContainer
 from pathlib import Path
 
+from config import TEST_CONTAINER_IMAGE
+
+
 class TestContainerSample(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        self.mysql_container = MySqlContainer('mysql:9.0.1')
+        self.mysql_container = MySqlContainer(TEST_CONTAINER_IMAGE)
         self.mysql_container.start()
 
         host = self.mysql_container.get_container_host_ip()
