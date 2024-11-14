@@ -1,7 +1,23 @@
 CREATE TABLE class (
     class_id CHAR(36) PRIMARY KEY,
     title VARCHAR(64) NOT NULL,
-    code VARCHAR(24) UNIQUE NOT NULL
+    class_term_id CHAR(36) NOT NULL,
+
+    user_friendly_class_code VARCHAR(24) UNIQUE NOT NULL,
+
+    -- the unique URL path that all pages must start with
+    starting_url_path VARCHAR(128) UNIQUE NOT NULL,
+
+    FOREIGN KEY (class_term_id) REFERENCES class_term(class_term_id)
+);
+
+CREATE TABLE class_term (
+    class_term_id CHAR(36) PRIMARY KEY,
+    title VARCHAR(64) NOT NULL,
+    position INT NOT NULL,
+
+    -- whether to display associated classes on the starting page
+    start_date DATETIME
 );
 
 CREATE TABLE user (
@@ -9,7 +25,7 @@ CREATE TABLE user (
     full_name VARCHAR(64) NOT NULL,
     email VARCHAR(128) UNIQUE NOT NULL,
     -- hashed password is fixed length
-    password CHAR(60) NOT NULL
+    hashed_password CHAR(60) NOT NULL
 );
 
 CREATE TABLE enrollment (
