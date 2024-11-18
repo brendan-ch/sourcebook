@@ -6,4 +6,4 @@ from typing import Optional
 class User:
     full_name: str
     email: str
-    user_id: Optional[str] = None
+    user_id: Optional[int] = None
