@@ -1,5 +1,3 @@
-import unittest
-
 from datarepos.user_repo import UserRepo
 from test.test_with_database_container import TestWithDatabaseContainer
 from werkzeug.security import generate_password_hash
@@ -41,7 +39,16 @@ class TestUserRepo(TestWithDatabaseContainer):
         self.assertEqual(user_id_to_validate, None)
 
     def test_get_user_from_id_if_exists(self):
-        pass
+        new_user, _ = self.add_sample_user_to_test_db()
+
+        user_to_validate = self.user_repo.get_user_from_id_if_exists(new_user.user_id)
+        self.assertNotEqual(user_to_validate, None)
+        self.assertEqual(user_to_validate.user_id, new_user.user_id)
+        self.assertEqual(user_to_validate.full_name, new_user.full_name)
+        self.assertEqual(user_to_validate.email, new_user.email)
 
     def test_get_user_from_id_if_not_exists(self):
-        pass
+        nonexistent_user_id = "1"
+
+        user_to_validate = self.user_repo.get_user_from_id_if_exists(nonexistent_user_id)
+        self.assertEqual(user_to_validate, None)
