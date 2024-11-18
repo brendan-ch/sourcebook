@@ -48,7 +48,7 @@ class UserRepo:
 
         return None
 
-    def get_user_from_id_if_exists(self, user_id: str) -> Optional[User]:
+    def get_user_from_id_if_exists(self, user_id: int) -> Optional[User]:
         get_user_query = '''
         SELECT user_id, email, full_name
         FROM user
@@ -68,9 +68,19 @@ class UserRepo:
         if user.user_id:
             raise AlreadyExistsException
 
-        # Hash the password
-        # Run the insert query
-        # Return the outputted user ID
+        hashed_password = generate_password_hash(given_password)
+
+        # noinspection SqlInsertValues
+        insert_query = '''
+        INSERT INTO user(full_name, email, hashed_password) 
+        VALUES (%s, %s, %s)
+        '''
+        params = (user.full_name, user.email, hashed_password)
+
+        cursor = self.connection.cursor()
+        cursor.execute(insert_query, params)
+        row_id = cursor.lastrowid
+        return row_id
 
     def close_connection(self):
         self.connection.close()
