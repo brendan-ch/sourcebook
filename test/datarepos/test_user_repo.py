@@ -30,3 +30,10 @@ class TestUserRepo(TestWithDatabaseContainer):
 
         user_id_to_validate = self.user_repo.get_user_id_if_credentials_match(new_user.email, sample_password)
         self.assertEqual(user_id_to_validate, new_user.user_id)
+
+    def test_get_user_id_if_credentials_not_match(self):
+        nonexistent_email = "example@example.com"
+        nonexistent_password = "C4x6Fc4YbxUsWtz.Luj*ECo*xv@xGkQXv_h.-khVXqvAkmgiZgCoBn*Kj_.C-e9@"
+
+        user_id_to_validate = self.user_repo.get_user_id_if_credentials_match(nonexistent_email, nonexistent_password)
+        self.assertEqual(user_id_to_validate, None)
