@@ -44,7 +44,14 @@ class TestUserRepo(TestWithDatabaseContainer):
         self.assertEqual(user_id_to_validate, None)
 
     def test_get_user_id_if_password_not_match(self):
-        pass
+        new_user, _ = self.add_sample_user_to_test_db()
+
+        incorrect_password = "12345"
+
+        user_id_to_validate = self.user_repo.get_user_id_if_credentials_match(new_user.email, incorrect_password)
+        self.assertEqual(user_id_to_validate, None)
+
+    pass
 
     def test_get_user_from_id_if_exists(self):
         new_user, _ = self.add_sample_user_to_test_db()
