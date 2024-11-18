@@ -3,6 +3,7 @@ from typing import Optional
 import mysql.connector
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
+from models.user import User
 
 
 class UserRepo:
@@ -31,6 +32,9 @@ class UserRepo:
         # Hash the user's given password
         # Check if email and password combination match
         # Return the user ID to store in the user's session cookie
+        pass
+
+    def get_user_from_id_if_exists(self, user_id: str) -> Optional[User]:
         pass
 
     def close_connection(self):
