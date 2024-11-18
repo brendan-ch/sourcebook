@@ -23,6 +23,8 @@ class TestUserRepo(TestWithDatabaseContainer):
         params = (new_user.user_id, new_user.full_name, new_user.email, hashed_password)
         cursor = self.connection.cursor()
         cursor.execute(add_query, params)
+        self.connection.commit()
+
         return new_user, sample_password
 
     def test_get_user_id_if_credentials_match(self):
