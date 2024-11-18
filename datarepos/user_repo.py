@@ -1,6 +1,7 @@
 from typing import Optional
 
 import mysql.connector
+from werkzeug.security import generate_password_hash
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
 from models.user import User
@@ -26,15 +27,12 @@ class UserRepo:
         raise NotImplemented
 
     def get_user_id_if_credentials_match(self, email: str, given_password: str) -> Optional[str]:
-        # Hypothetical login flow:
-        # Receive login credentials at endpoint
-        # Pass to this method
-        # Hash the user's given password
-        # Check if email and password combination match
-        # Return the user ID to store in the user's session cookie
         pass
 
     def get_user_from_id_if_exists(self, user_id: str) -> Optional[User]:
+        pass
+
+    def add_new_user_and_get_id(self, user: User, given_password: str):
         pass
 
     def close_connection(self):

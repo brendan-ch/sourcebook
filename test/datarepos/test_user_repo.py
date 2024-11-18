@@ -52,3 +52,34 @@ class TestUserRepo(TestWithDatabaseContainer):
 
         user_to_validate = self.user_repo.get_user_from_id_if_exists(nonexistent_user_id)
         self.assertEqual(user_to_validate, None)
+
+    def test_add_new_user_and_get_id(self):
+        new_user = User(
+            full_name="Test Name",
+            email="example@example.com"
+        )
+        sample_password = "C4x6Fc4YbxUsWtz.Luj*ECo*xv@xGkQXv_h.-khVXqvAkmgiZgCoBn*Kj_.C-e9@"
+
+        new_user.user_id = self.user_repo.add_new_user_and_get_id(new_user, sample_password)
+
+        # Validate against the database
+        get_user_query = '''
+        SELECT user_id, full_name, email, hashed_password
+        FROM user
+        WHERE user_id = %s
+            AND full_name = %s
+            AND email = %s
+        '''
+        params = (new_user.user_id, new_user.full_name, new_user.email)
+
+        cursor = self.connection.cursor()
+        cursor.execute(get_user_query, params)
+
+        cursor_result = cursor.fetchone()
+        self.assertNotEqual(cursor_result, None)
+
+        user_id, full_name, email, hashed_password = cursor_result
+        self.assertEqual(user_id, new_user.user_id)
+        self.assertEqual(full_name, new_user.full_name)
+        self.assertEqual(email, new_user.email)
+        self.assertNotEqual(hashed_password, sample_password)
