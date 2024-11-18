@@ -33,6 +33,8 @@ class UserRepo:
         pass
 
     def add_new_user_and_get_id(self, user: User, given_password: str) -> str:
+        # If user_id exists on user, throw an exception regardless of whether it
+        # actually matches a database entry
         pass
 
     def close_connection(self):
