@@ -4,6 +4,7 @@ import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
+from custom_exceptions import AlreadyExistsException
 from models.user import User
 
 
@@ -64,9 +65,12 @@ class UserRepo:
         return None
 
     def add_new_user_and_get_id(self, user: User, given_password: str) -> str:
-        # If user_id exists on user, throw an exception regardless of whether it
-        # actually matches a database entry
-        pass
+        if user.user_id:
+            raise AlreadyExistsException
+
+        # Hash the password
+        # Run the insert query
+        # Return the outputted user ID
 
     def close_connection(self):
         self.connection.close()
