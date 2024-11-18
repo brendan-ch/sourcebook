@@ -1,4 +1,5 @@
 from datarepos.user_repo import UserRepo
+from custom_exceptions import AlreadyExistsException
 from test.test_with_database_container import TestWithDatabaseContainer
 from werkzeug.security import generate_password_hash
 
@@ -84,9 +85,52 @@ class TestUserRepo(TestWithDatabaseContainer):
         self.assertEqual(email, new_user.email)
         self.assertNotEqual(hashed_password, sample_password)
 
-    def test_add_new_user_with_duplicate_id(self):
-        pass
+    def test_add_new_user_with_id(self):
+        new_user = User(
+            user_id="1",
+            email="example@example.com",
+            full_name="Test Name",
+        )
+
+        with self.assertRaises(AlreadyExistsException):
+            self.user_repo.add_new_user_and_get_id(new_user, "Test")
+
+        # Check side effects
+        get_user_query = '''
+        SELECT user_id, full_name, email, hashed_password
+        FROM user
+        WHERE user_id = %s
+        '''
+        params = (new_user.user_id,)
+
+        cursor = self.connection.cursor()
+        cursor.execute(get_user_query, params)
+
+        cursor_result = cursor.fetchone()
+        self.assertEqual(cursor_result, None)
 
     def test_add_new_user_with_duplicate_email(self):
-        pass
+        new_user, sample_password = self.add_sample_user_to_test_db()
 
+        # Try to insert with a blank user ID but duplicate email
+        new_user.user_id = None
+
+        with self.assertRaises(AlreadyExistsException):
+            self.user_repo.add_new_user_and_get_id(new_user, "Test")
+
+        # Check side effects
+        get_user_query = '''
+        SELECT user_id, full_name, email, hashed_password
+        FROM user
+        WHERE email = %s
+        '''
+        params = (new_user.email,)
+
+        cursor = self.connection.cursor()
+        cursor.execute(get_user_query, params)
+
+        cursor_results = cursor.fetchall()
+        self.assertEqual(len(cursor_results), 1)
+        self.assertEqual(cursor_results[0][0], new_user.user_id)
+        self.assertEqual(cursor_results[0][1], new_user.full_name)
+        self.assertEqual(cursor_results[0][2], new_user.email)
