@@ -1,0 +1,18 @@
+version: "3"
+services:
+  db:
+    container_name: mydb
+    image: mysql:9.0.1
+#    ports:
+#      - "32001:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  app:
+    container_name: myapp
+    links:
+      - "db"
+    build: ./
+    ports:
+      # Link the Flask server
+      - "5000"
