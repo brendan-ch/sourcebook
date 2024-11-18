@@ -83,3 +83,10 @@ class TestUserRepo(TestWithDatabaseContainer):
         self.assertEqual(full_name, new_user.full_name)
         self.assertEqual(email, new_user.email)
         self.assertNotEqual(hashed_password, sample_password)
+
+    def test_add_new_user_with_duplicate_id(self):
+        pass
+
+    def test_add_new_user_with_duplicate_email(self):
+        pass
+
