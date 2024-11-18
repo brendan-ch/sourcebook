@@ -25,7 +25,7 @@ CREATE TABLE user (
     full_name VARCHAR(64) NOT NULL,
     email VARCHAR(128) UNIQUE NOT NULL,
     -- hashed password is fixed length
-    hashed_password CHAR(60) NOT NULL
+    hashed_password CHAR(163) NOT NULL
 );
 
 CREATE TABLE enrollment (
