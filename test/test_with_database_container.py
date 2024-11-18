@@ -50,15 +50,14 @@ class TestWithDatabaseContainer(unittest.TestCase):
         system(command)
 
     def tearDown(self):
+        host = self.mysql_container.get_container_host_ip()
+        port = self.mysql_container.get_exposed_port(3306)
+        database = self.mysql_container.dbname
+
         project_root = Path(__file__).resolve().parent.parent
         teardown_sql_file_path = project_root / 'sql' / 'teardown_schema.sql'
 
-        with teardown_sql_file_path.open('r') as f:
-            sql_commands = f.read().split(';')
-            cursor = self.connection.cursor()
-            for command in sql_commands:
-                if command:
-                    cursor.execute(command)
-            self.connection.commit()
-
         self.connection.close()
+
+        command = f'mysql -u root -p{TEST_ROOT_PASSWORD} --host={'127.0.0.1' if host == 'localhost' else host} --port={port} {database} < "{teardown_sql_file_path}"'
+        system(command)
