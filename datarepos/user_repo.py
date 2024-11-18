@@ -32,7 +32,7 @@ class UserRepo:
     def get_user_from_id_if_exists(self, user_id: str) -> Optional[User]:
         pass
 
-    def add_new_user_and_get_id(self, user: User, given_password: str):
+    def add_new_user_and_get_id(self, user: User, given_password: str) -> str:
         pass
 
     def close_connection(self):
