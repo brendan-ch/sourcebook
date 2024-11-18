@@ -1,3 +1,4 @@
+-- Tables
 CREATE TABLE class_term (
     class_term_id CHAR(36) PRIMARY KEY,
     title VARCHAR(64) NOT NULL,
@@ -89,3 +90,50 @@ CREATE TABLE attendance_record (
     FOREIGN KEY (user_id) REFERENCES user(user_id),
     FOREIGN KEY (attendance_session_id) REFERENCES attendance_session(attendance_session_id)
 );
+
+-- Triggers for UUIDs
+DELIMITER $$
+
+CREATE TRIGGER before_insert_uuid_on_class_term
+    BEFORE INSERT ON class_term
+    FOR EACH ROW
+BEGIN
+    SET NEW.class_term_id = UUID();
+END $$
+
+CREATE TRIGGER before_insert_uuid_on_class
+    BEFORE INSERT ON class
+    FOR EACH ROW
+BEGIN
+    SET NEW.class_id = UUID();
+END $$
+
+CREATE TRIGGER before_insert_uuid_on_user
+    BEFORE INSERT ON user
+    FOR EACH ROW
+BEGIN
+    SET NEW.user_id = UUID();
+END $$
+
+CREATE TRIGGER before_insert_uuid_on_page
+    BEFORE INSERT ON page
+    FOR EACH ROW
+BEGIN
+    SET NEW.page_id = UUID();
+END $$
+
+CREATE TRIGGER before_insert_uuid_on_file
+    BEFORE INSERT ON file
+    FOR EACH ROW
+BEGIN
+    SET NEW.file_id = UUID();
+END $$
+
+CREATE TRIGGER before_insert_uuid_on_attendance_session
+    BEFORE INSERT ON attendance_session
+    FOR EACH ROW
+BEGIN
+    SET NEW.attendance_session_id = UUID();
+END $$
+
+DELIMITER ;
