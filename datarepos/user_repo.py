@@ -48,7 +48,20 @@ class UserRepo:
         return None
 
     def get_user_from_id_if_exists(self, user_id: str) -> Optional[User]:
-        pass
+        get_user_query = '''
+        SELECT user_id, email, full_name
+        FROM user
+        WHERE user.user_id = %s
+        '''
+        params = (user_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_user_query, params)
+        cursor_result = cursor.fetchone()
+
+        if cursor_result:
+            return User(**cursor_result)
+        return None
 
     def add_new_user_and_get_id(self, user: User, given_password: str) -> str:
         # If user_id exists on user, throw an exception regardless of whether it
