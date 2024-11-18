@@ -143,6 +143,9 @@ class TestUserRepo(TestWithDatabaseContainer):
 
         cursor_results = cursor.fetchall()
         self.assertEqual(len(cursor_results), 1)
-        self.assertEqual(cursor_results[0][0], new_user.user_id)
-        self.assertEqual(cursor_results[0][1], new_user.full_name)
-        self.assertEqual(cursor_results[0][2], new_user.email)
+
+        user_id, full_name, email, hashed_password = cursor_results[0]
+        self.assertEqual(user_id, new_user.user_id)
+        self.assertEqual(full_name, new_user.full_name)
+        self.assertEqual(email, new_user.email)
+
