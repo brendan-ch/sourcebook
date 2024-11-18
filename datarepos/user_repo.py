@@ -7,6 +7,7 @@ from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWOR
 from custom_exceptions import AlreadyExistsException
 from models.user import User
 
+MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE = 1062
 
 class UserRepo:
     def __init__(self, connection = None):
@@ -77,10 +78,15 @@ class UserRepo:
         '''
         params = (user.full_name, user.email, hashed_password)
 
-        cursor = self.connection.cursor()
-        cursor.execute(insert_query, params)
-        row_id = cursor.lastrowid
-        return row_id
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(insert_query, params)
+            self.connection.commit()
+            row_id = cursor.lastrowid
+            return row_id
+        except mysql.connector.errors.IntegrityError as e:
+            if e.errno == MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+                raise AlreadyExistsException
 
     def close_connection(self):
         self.connection.close()
