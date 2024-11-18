@@ -1,16 +1,22 @@
 import unittest
 from pathlib import Path
+from os import system
+from subprocess import Popen, PIPE
 
 import mysql.connector
 from testcontainers.mysql import MySqlContainer
 
 from config import TEST_CONTAINER_IMAGE
 
+TEST_ROOT_PASSWORD = "12345"
 
 class TestWithDatabaseContainer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.mysql_container = MySqlContainer(TEST_CONTAINER_IMAGE)
+        cls.mysql_container = MySqlContainer(
+            image=TEST_CONTAINER_IMAGE,
+            root_password=TEST_ROOT_PASSWORD,
+        )
         cls.mysql_container.start()
 
     @classmethod
@@ -32,20 +38,16 @@ class TestWithDatabaseContainer(unittest.TestCase):
             database=database,
         )
 
-        project_root = Path(__file__).resolve().parent.parent
-        setup_sql_schema_path = project_root / 'sql' / 'setup_schema.sql'
-
         cursor = self.connection.cursor()
         cursor.execute("USE test;")
         self.connection.commit()
 
-        with setup_sql_schema_path.open('r') as f:
-            sql_commands = f.read().split(';')
-            cursor = self.connection.cursor()
-            for command in sql_commands:
-                if command:
-                    cursor.execute(command)
-            self.connection.commit()
+        project_root = Path(__file__).resolve().parent.parent
+        setup_sql_schema_path = project_root / 'sql' / 'setup_schema.sql'
+
+        # Login as root to execute CREATE TRIGGER statements
+        command = f'mysql -u root -p{TEST_ROOT_PASSWORD} --host={'127.0.0.1' if host == 'localhost' else host} --port={port} {database} < "{setup_sql_schema_path}"'
+        system(command)
 
     def tearDown(self):
         project_root = Path(__file__).resolve().parent.parent
