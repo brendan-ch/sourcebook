@@ -125,6 +125,7 @@ class TestUserRepo(TestWithDatabaseContainer):
         new_user, sample_password = self.add_sample_user_to_test_db()
 
         # Try to insert with a blank user ID but duplicate email
+        new_user_original_user_id = new_user.user_id
         new_user.user_id = None
 
         with self.assertRaises(AlreadyExistsException):
@@ -145,7 +146,7 @@ class TestUserRepo(TestWithDatabaseContainer):
         self.assertEqual(len(cursor_results), 1)
 
         user_id, full_name, email, hashed_password = cursor_results[0]
-        self.assertEqual(user_id, new_user.user_id)
+        self.assertEqual(user_id, new_user_original_user_id)
         self.assertEqual(full_name, new_user.full_name)
         self.assertEqual(email, new_user.email)
 
