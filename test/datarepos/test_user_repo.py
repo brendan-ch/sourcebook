@@ -1,7 +1,7 @@
 from datarepos.user_repo import UserRepo
 from custom_exceptions import AlreadyExistsException
 from test.test_with_database_container import TestWithDatabaseContainer
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from models.user import User
 
@@ -95,7 +95,7 @@ class TestUserRepo(TestWithDatabaseContainer):
         self.assertEqual(user_id, new_user.user_id)
         self.assertEqual(full_name, new_user.full_name)
         self.assertEqual(email, new_user.email)
-        self.assertNotEqual(hashed_password, sample_password)
+        self.assertTrue(check_password_hash(hashed_password, sample_password))
 
     def test_add_new_user_with_id(self):
         new_user = User(
