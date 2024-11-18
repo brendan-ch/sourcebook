@@ -1,7 +1,7 @@
 from typing import Optional
 
 import mysql.connector
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
 from models.user import User
@@ -27,7 +27,25 @@ class UserRepo:
         raise NotImplemented
 
     def get_user_id_if_credentials_match(self, email: str, given_password: str) -> Optional[str]:
-        pass
+        get_user_query = '''
+        SELECT user_id, hashed_password
+        FROM user
+        WHERE user.email = %s
+        '''
+        params = (email,)
+
+        cursor = self.connection.cursor()
+        cursor.execute(get_user_query, params)
+
+        cursor_result = cursor.fetchone()
+        if not cursor_result:
+            return None
+
+        user_id, hashed_password = cursor_result
+        if check_password_hash(hashed_password, given_password):
+            return user_id
+
+        return None
 
     def get_user_from_id_if_exists(self, user_id: str) -> Optional[User]:
         pass
