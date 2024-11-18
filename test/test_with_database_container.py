@@ -13,13 +13,18 @@ class TestWithDatabaseContainer(unittest.TestCase):
         cls.mysql_container = MySqlContainer(TEST_CONTAINER_IMAGE)
         cls.mysql_container.start()
 
-        host = cls.mysql_container.get_container_host_ip()
-        port = cls.mysql_container.get_exposed_port(3306)
-        user = cls.mysql_container.username
-        password = cls.mysql_container.password
-        database = cls.mysql_container.dbname
+    @classmethod
+    def tearDownClass(cls):
+        cls.mysql_container.stop()
 
-        cls.connection = mysql.connector.connect(
+    def setUp(self):
+        host = self.mysql_container.get_container_host_ip()
+        port = self.mysql_container.get_exposed_port(3306)
+        user = self.mysql_container.username
+        password = self.mysql_container.password
+        database = self.mysql_container.dbname
+
+        self.connection = mysql.connector.connect(
             host=host,
             port=port,
             user=user,
@@ -27,13 +32,6 @@ class TestWithDatabaseContainer(unittest.TestCase):
             database=database,
         )
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.connection.close()
-        cls.mysql_container.stop()
-
-
-    def setUp(self):
         project_root = Path(__file__).resolve().parent.parent
         setup_sql_schema_path = project_root / 'sql' / 'setup_schema.sql'
 
@@ -60,3 +58,5 @@ class TestWithDatabaseContainer(unittest.TestCase):
                 if command:
                     cursor.execute(command)
             self.connection.commit()
+
+        self.connection.close()
