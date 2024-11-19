@@ -2,6 +2,7 @@ from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.course_repo import CourseRepo
 from models.course import Course
 from models.course_term import CourseTerm
+from models.user import User
 from test.test_with_database_container import TestWithDatabaseContainer
 
 
@@ -74,6 +75,16 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.connection.commit()
         return courses
 
+    def add_single_enrollment(self, enrollment: CourseEnrollment):
+        insert_enrollment_query = '''
+        INSERT INTO enrollment(course_id, role, user_id)
+        VALUES (%s, %s, %s);
+        '''
+        params = (enrollment.course_id, enrollment.role.value, enrollment.user_id)
+        cursor = self.connection.cursor()
+        cursor.execute(insert_enrollment_query, params)
+        self.connection.commit()
+
     def test_get_all_course_enrollments_for_user_id(self):
         user, _ = self.add_sample_user_to_test_db()
         courses = self.add_sample_course_term_and_course_enrollment_cluster()
@@ -141,13 +152,32 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertEqual(returned_course, None)
 
     def test_check_whether_student_has_editing_rights(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        enrollment = CourseEnrollment(role=Role.STUDENT, user_id=user.user_id, course_id=courses[0].course_id)
+        self.add_single_enrollment(enrollment)
+
+        result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
+        self.assertEqual(result, False)
+
 
     def test_check_whether_professor_has_editing_rights(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        enrollment = CourseEnrollment(role=Role.PROFESSOR, user_id=user.user_id, course_id=courses[0].course_id)
+        self.add_single_enrollment(enrollment)
+
+        result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
+        self.assertEqual(result, True)
 
     def test_check_whether_assistant_has_editing_rights(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        enrollment = CourseEnrollment(role=Role.ASSISTANT, user_id=user.user_id, course_id=courses[0].course_id)
+        self.add_single_enrollment(enrollment)
+
+        result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
+        self.assertEqual(result, True)
 
     def test_add_new_course_and_get_id(self):
         pass
