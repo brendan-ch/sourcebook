@@ -504,4 +504,8 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertEqual(result, None)
 
     def test_delete_course_enrollment_by_id_if_not_exists(self):
-        pass
+        nonexistent_course_id = 1
+        nonexistent_user_id = 1
+
+        with self.assertRaises(NotFoundException):
+            self.course_repo.delete_course_enrollment_by_id(nonexistent_course_id, nonexistent_user_id)
