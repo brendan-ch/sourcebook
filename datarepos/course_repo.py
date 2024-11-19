@@ -78,8 +78,12 @@ class CourseRepo(Repo):
 
         cursor = self.connection.cursor()
         cursor.execute(get_enrollment_query, params)
-        result, = cursor.fetchone()
-        role = Role(result)
+        result = cursor.fetchone()
+        if not result:
+            return False
+
+        role_number, = result
+        role = Role(role_number)
 
         if role == Role.STUDENT:
             return False
