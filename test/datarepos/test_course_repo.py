@@ -152,33 +152,28 @@ class TestCourseRepo(TestWithDatabaseContainer):
         returned_course = self.course_repo.get_course_by_id_if_exists(nonexistent_course_id)
         self.assertEqual(returned_course, None)
 
-    def test_check_whether_student_has_editing_rights(self):
+    def test_check_whether_roles_has_editing_rights(self):
+        roles = list(Role)
+
         user, _ = self.add_sample_user_to_test_db()
         courses = self.add_sample_course_term_and_course_enrollment_cluster()
-        enrollment = CourseEnrollment(role=Role.STUDENT, user_id=user.user_id, course_id=courses[0].course_id)
-        self.add_single_enrollment(enrollment)
 
-        result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
-        self.assertEqual(result, False)
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(role=role, user_id=user.user_id, course_id=courses[0].course_id)
+                self.add_single_enrollment(enrollment)
 
+                result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
+                self.assertEqual(result, False)
 
-    def test_check_whether_professor_has_editing_rights(self):
-        user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
-        enrollment = CourseEnrollment(role=Role.PROFESSOR, user_id=user.user_id, course_id=courses[0].course_id)
-        self.add_single_enrollment(enrollment)
-
-        result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
-        self.assertEqual(result, True)
-
-    def test_check_whether_assistant_has_editing_rights(self):
-        user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
-        enrollment = CourseEnrollment(role=Role.ASSISTANT, user_id=user.user_id, course_id=courses[0].course_id)
-        self.add_single_enrollment(enrollment)
-
-        result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
-        self.assertEqual(result, True)
+            # Regardless of whether test fails or succeeds,
+            # clear enrollments
+            delete_query = '''
+            DELETE FROM enrollment;
+            '''
+            cursor = self.connection.cursor()
+            cursor.execute(delete_query)
+            self.connection.commit()
 
     def test_add_new_course_and_get_id(self):
         new_course = Course(
