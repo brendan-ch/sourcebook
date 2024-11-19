@@ -191,7 +191,20 @@ class CourseRepo(Repo):
                 raise e
 
     def update_role_by_course_and_user_id(self, course_enrollment: CourseEnrollment):
-        pass
+        update_course_enrollment_query = '''
+        UPDATE enrollment
+        SET enrollment.role = %s
+        WHERE enrollment.course_id = %s
+            AND enrollment.user_id = %s;
+        '''
+        params = (course_enrollment.role.value, course_enrollment.course_id, course_enrollment.user_id)
+
+        cursor = self.connection.cursor()
+        cursor.execute(update_course_enrollment_query, params)
+        self.connection.commit()
+
+        if cursor.rowcount < 1:
+            raise NotFoundException
 
     def delete_course_enrollment_by_id(self, course_id: int, user_id: int):
         pass
