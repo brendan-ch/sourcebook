@@ -10,7 +10,7 @@ CREATE TABLE course (
     title VARCHAR(64) NOT NULL,
     course_term_id INT,
 
-    user_friendly_class_code VARCHAR(24) UNIQUE NOT NULL,
+    user_friendly_class_code VARCHAR(24) NOT NULL,
 
     -- the unique URL path that all pages must start with
     starting_url_path VARCHAR(128) UNIQUE NOT NULL,
