@@ -1,9 +1,11 @@
 from flask import Flask
 
+from blueprints.index import index_bp
+
+
 def create_app():
     app = Flask(__name__)
-
-    # TODO register blueprints
+    app.register_blueprint(index_bp)
 
     return app
 
