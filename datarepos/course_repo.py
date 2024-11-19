@@ -1,5 +1,6 @@
 from typing import Optional
 
+from custom_exceptions import AlreadyExistsException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.repo import Repo
 from models.course import Course
@@ -83,7 +84,29 @@ class CourseRepo(Repo):
         return True
 
     def add_new_course_and_get_id(self, course: Course):
-        pass
+        if course.course_id:
+            raise AlreadyExistsException
+
+        add_course_query = '''
+        INSERT INTO course(
+            course.title,
+            course.course_term_id,
+            course.starting_url_path,
+            course.user_friendly_class_code
+        )
+        VALUES (%s, %s, %s, %s);
+        '''
+        params = (course.title,
+                  course.course_term_id,
+                  course.starting_url_path,
+                  course.user_friendly_class_code)
+
+        cursor = self.connection.cursor()
+        cursor.execute(add_course_query, params)
+        self.connection.commit()
+
+        id = cursor.lastrowid
+        return id
 
     def update_course_metadata_by_id(self, course: Course):
         pass
