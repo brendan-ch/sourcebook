@@ -268,9 +268,34 @@ class TestCourseRepo(TestWithDatabaseContainer):
         )
 
     def test_update_course_metadata_by_id(self):
-        pass
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        modified_course = courses[0]
+
+        # Modify every field
+        # TODO validate course term change, which would require refactor of sample data method
+        modified_course.starting_url_path = "/cpsc-350-f24"
+        modified_course.title = "Data Structures and Algorithms"
+        modified_course.user_friendly_class_code = "CPSC 350"
+
+        self.course_repo.update_course_metadata_by_id(modified_course)
+
+        course_select_query = '''
+        SELECT course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
+        FROM course
+        WHERE course.course_id = %s
+        '''
+        params = (modified_course.course_id,)
+        self.assert_single_course_against_database_query(course_select_query, modified_course, params)
+
 
     def test_update_nonexistent_course_metadata(self):
+        pass
+
+    def test_update_course_metadata_with_duplicate_starting_url(self):
         pass
 
     def test_delete_course_by_id_if_exists(self):
