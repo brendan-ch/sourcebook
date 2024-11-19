@@ -1,11 +1,13 @@
 from flask import Flask
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
 
-@app.route("/")
-def hello_world():  # put application"s code here
-    return "Hello World!"
+    # TODO register blueprints
 
+    return app
+
+app = create_app()
 
 if __name__ == "__main__":
     app.run()
