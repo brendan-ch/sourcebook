@@ -2,7 +2,7 @@ from typing import Optional
 
 from mysql.connector import IntegrityError
 
-from custom_exceptions import AlreadyExistsException
+from custom_exceptions import AlreadyExistsException, NotFoundException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.repo import Repo
 from models.course import Course
@@ -118,7 +118,39 @@ class CourseRepo(Repo):
         return id
 
     def update_course_metadata_by_id(self, course: Course):
-        pass
+        update_query = '''
+        UPDATE course
+        SET
+            course.course_term_id = %s,
+            course.user_friendly_class_code = %s,
+            course.starting_url_path = %s,
+            course.title = %s
+        WHERE course.course_id = %s;
+        '''
+        params = (
+            course.course_term_id,
+            course.user_friendly_class_code,
+            course.starting_url_path,
+            course.title,
+            course.course_id
+        )
+
+        cursor = self.connection.cursor()
+
+        try:
+            cursor.execute(update_query, params)
+        except IntegrityError as e:
+            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+                raise AlreadyExistsException
+            else:
+                raise IntegrityError
+
+        row_count = cursor.rowcount
+        if row_count < 1:
+            raise NotFoundException
+
+        self.connection.commit()
+
 
     def delete_course_by_id(self, course_id: int):
         pass
