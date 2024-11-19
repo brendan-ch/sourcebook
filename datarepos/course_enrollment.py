@@ -9,7 +9,6 @@ class Role(Enum):
     STUDENT = 1
     ASSISTANT = 2
     PROFESSOR = 3
-    ADMIN = 4
 
 
 @dataclass
