@@ -175,7 +175,20 @@ class CourseRepo(Repo):
         self.connection.commit()
 
     def add_course_enrollment(self, course_enrollment: CourseEnrollment):
-        pass
+        add_course_enrollment_query = '''
+        INSERT INTO enrollment(enrollment.course_id, enrollment.user_id, enrollment.role)
+        VALUES (%s, %s, %s);
+        '''
+        params = (course_enrollment.course_id, course_enrollment.user_id, course_enrollment.role.value)
+
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(add_course_enrollment_query, params)
+        except IntegrityError as e:
+            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+                raise AlreadyExistsException
+            else:
+                raise e
 
     def update_role_by_course_and_user_id(self, course_enrollment: CourseEnrollment):
         pass
