@@ -10,9 +10,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         super().setUp()
         self.course_repo = CourseRepo(self.connection)
 
-    def test_get_all_course_enrollments_for_user_id(self):
-        user, _ = self.add_sample_user_to_test_db()
-
+    def add_sample_course_term_and_course_enrollment_cluster(self):
         course_terms = [
             CourseTerm(
                 title="Fall 2024",
@@ -31,7 +29,6 @@ class TestCourseRepo(TestWithDatabaseContainer):
                 position_from_top=4
             ),
         ]
-
         insert_course_term_query = '''
         INSERT INTO course_term(title, position_from_top)
         VALUES (%s, %s);
@@ -42,7 +39,6 @@ class TestCourseRepo(TestWithDatabaseContainer):
             cursor.execute(insert_course_term_query, params)
 
             course_term.course_term_id = cursor.lastrowid
-
         self.connection.commit()
 
         courses = [
@@ -65,20 +61,22 @@ class TestCourseRepo(TestWithDatabaseContainer):
                 course_term_id=course_terms[1].course_term_id,
             ),
         ]
-
         insert_course_query = '''
         INSERT INTO course(title, user_friendly_class_code, starting_url_path, course_term_id)
         VALUES (%s, %s, %s, %s);
         '''
-
         for course in courses:
             params = (course.title, course.user_friendly_class_code, course.starting_url_path, course.course_term_id)
             cursor = self.connection.cursor()
             cursor.execute(insert_course_query, params)
 
             course.course_id = cursor.lastrowid
-
         self.connection.commit()
+        return courses
+
+    def test_get_all_course_enrollments_for_user_id(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
 
         course_enrollments = [
             CourseEnrollment(
@@ -117,6 +115,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
             self.assertEqual(course_enrollment.role, returned_course_enrollment.role)
             self.assertEqual(course_enrollment.user_id, returned_course_enrollment.user_id)
 
+
     def test_get_course_enrollments_for_user_id_if_no_enrollments(self):
         user, _ = self.add_sample_user_to_test_db()
 
@@ -126,10 +125,20 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertEqual(len(returned_course_enrollments), 0)
 
     def test_get_course_by_id_if_exists(self):
-        pass
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+
+        returned_course = self.course_repo.get_course_by_id_if_exists(courses[0].course_id)
+        self.assertNotEqual(returned_course, None)
+        self.assertEqual(returned_course.course_id, courses[0].course_id)
+        self.assertEqual(returned_course.course_term_id, courses[0].course_term_id)
+        self.assertEqual(returned_course.starting_url_path, courses[0].starting_url_path)
+        self.assertEqual(returned_course.user_friendly_class_code, courses[0].user_friendly_class_code)
+        self.assertEqual(returned_course.title, courses[0].title)
 
     def test_get_course_by_id_if_not_exists(self):
-        pass
+        nonexistent_course_id = 1
+        returned_course = self.course_repo.get_course_by_id_if_exists(nonexistent_course_id)
+        self.assertEqual(returned_course, None)
 
     def test_check_whether_student_has_editing_rights(self):
         pass
