@@ -1,3 +1,5 @@
+import copy
+
 from custom_exceptions import AlreadyExistsException, NotFoundException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.course_repo import CourseRepo
@@ -294,6 +296,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_update_nonexistent_course_metadata(self):
         new_course = Course(
+            course_id=1,
             title="Visual Programming",
             user_friendly_class_code="CPSC 236",
             starting_url_path="/cpsc-236-f24"
@@ -303,7 +306,28 @@ class TestCourseRepo(TestWithDatabaseContainer):
             self.course_repo.update_course_metadata_by_id(new_course)
 
     def test_update_course_metadata_with_duplicate_starting_url(self):
-        pass
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        original_course = copy.deepcopy(courses[0])
+        modified_course = courses[0]
+
+        # Modify fields except for starting url
+        modified_course.title = "Data Structures and Algorithms"
+        modified_course.user_friendly_class_code = "CPSC 350"
+
+        with self.assertRaises(AlreadyExistsException):
+            self.course_repo.update_course_metadata_by_id(modified_course)
+
+        course_select_query = '''
+        SELECT course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
+        FROM course
+        WHERE course.course_id = %s
+        '''
+        params = (original_course.course_id,)
+        self.assert_single_course_against_database_query(course_select_query, original_course, params)
 
     def test_delete_course_by_id_if_exists(self):
         pass
