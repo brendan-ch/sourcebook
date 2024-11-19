@@ -441,7 +441,25 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
 
     def test_update_role_by_course_and_user_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        course_to_enroll = courses[0]
+
+        enrollment = CourseEnrollment(
+            course_id=course_to_enroll.course_id,
+            user_id=user.user_id,
+            role=Role.STUDENT
+        )
+
+        # Add the enrollment beforehand
+        self.add_single_enrollment(enrollment)
+
+        # Change the role on the enrollment
+        enrollment.role = Role.ASSISTANT
+        self.course_repo.update_role_by_course_and_user_id(enrollment)
+
+        # Validate
+        self.assert_single_enrollment_against_database(enrollment)
 
     def test_update_role_for_nonexistent_course_enrollment(self):
         pass
