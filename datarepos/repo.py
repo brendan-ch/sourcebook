@@ -6,6 +6,7 @@ from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWOR
 
 class Repo:
     MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE = 1062
+    MYSQL_FOREIGN_KEY_CONSTRAINT_EXCEPTION_CODE = 1451
 
     def __init__(self, connection = None):
         if not connection:

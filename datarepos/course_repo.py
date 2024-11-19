@@ -2,7 +2,7 @@ from typing import Optional
 
 from mysql.connector import IntegrityError
 
-from custom_exceptions import AlreadyExistsException, NotFoundException
+from custom_exceptions import AlreadyExistsException, NotFoundException, DependencyException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.repo import Repo
 from models.course import Course
@@ -112,7 +112,7 @@ class CourseRepo(Repo):
             if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
                 raise AlreadyExistsException
             else:
-                raise IntegrityError
+                raise e
 
         id = cursor.lastrowid
         return id
@@ -143,7 +143,7 @@ class CourseRepo(Repo):
             if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
                 raise AlreadyExistsException
             else:
-                raise IntegrityError
+                raise e
 
         row_count = cursor.rowcount
         if row_count < 1:
@@ -153,7 +153,26 @@ class CourseRepo(Repo):
 
 
     def delete_course_by_id(self, course_id: int):
-        pass
+        delete_course_query = '''
+        DELETE FROM course
+        WHERE course.course_id = %s;
+        '''
+        params = (course_id,)
+
+        cursor = self.connection.cursor()
+
+        try:
+            cursor.execute(delete_course_query, params)
+        except IntegrityError as e:
+            if e.errno == self.MYSQL_FOREIGN_KEY_CONSTRAINT_EXCEPTION_CODE:
+                raise DependencyException
+            raise e
+
+        row_count = cursor.rowcount
+        if row_count < 1:
+            raise NotFoundException
+
+        self.connection.commit()
 
     def add_course_enrollment(self, course_enrollment: CourseEnrollment):
         pass
