@@ -86,6 +86,19 @@ class TestCourseRepo(TestWithDatabaseContainer):
         cursor.execute(insert_enrollment_query, params)
         self.connection.commit()
 
+    def assert_single_course_against_database_query(self, course_select_query, original_course: Course, params = None):
+        cursor = self.connection.cursor()
+        cursor.execute(course_select_query, params)
+        results = cursor.fetchall()
+        self.assertEqual(len(results), 1)
+
+        course_id, course_term_id, starting_url_path, title, user_friendly_class_code = results[0]
+        self.assertEqual(course_id, original_course.course_id)
+        self.assertEqual(course_term_id, original_course.course_term_id)
+        self.assertEqual(starting_url_path, original_course.starting_url_path)
+        self.assertEqual(title, original_course.title)
+        self.assertEqual(user_friendly_class_code, original_course.user_friendly_class_code)
+
     def test_get_all_course_enrollments_for_user_id(self):
         user, _ = self.add_sample_user_to_test_db()
         courses = self.add_sample_course_term_and_course_enrollment_cluster()
@@ -185,7 +198,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         new_course.course_id = self.course_repo.add_new_course_and_get_id(new_course)
         self.assertNotEqual(new_course.course_id, None)
 
-        # Validate side effects
+        # Validate the intended side effects
         course_select_query = '''
         SELECT course.course_id,
             course.course_term_id,
@@ -195,18 +208,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         FROM course
         '''
 
-        cursor = self.connection.cursor()
-        cursor.execute(course_select_query)
-        results = cursor.fetchall()
-
-        self.assertEqual(len(results), 1)
-
-        course_id, course_term_id, starting_url_path, title, user_friendly_class_code = results[0]
-        self.assertEqual(course_id, new_course.course_id)
-        self.assertEqual(course_term_id, new_course.course_term_id)
-        self.assertEqual(starting_url_path, new_course.starting_url_path)
-        self.assertEqual(title, new_course.title)
-        self.assertEqual(user_friendly_class_code, new_course.user_friendly_class_code)
+        self.assert_single_course_against_database_query(course_select_query, new_course)
 
     def test_add_course_with_id(self):
         courses = self.add_sample_course_term_and_course_enrollment_cluster()
@@ -222,7 +224,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         with self.assertRaises(AlreadyExistsException):
             self.course_repo.add_new_course_and_get_id(course_with_id)
 
-        # Validate that no side effects occurred
+        # Validate the original course to make sure nothing changed
         course_select_query = '''
         SELECT course.course_id,
             course.course_term_id,
@@ -230,23 +232,12 @@ class TestCourseRepo(TestWithDatabaseContainer):
             course.title,
             course.user_friendly_class_code
         FROM course
-        WHERE course.starting_url_path = %s
+        WHERE course.course_id = %s
         '''
+        params = (duplicate_course_id,)
 
-        cursor = self.connection.cursor()
-        cursor.execute(course_select_query)
-        results = cursor.fetchall()
+        self.assert_single_course_against_database_query(course_select_query, courses[0], params)
 
-        self.assertEqual(len(results), 1)
-
-        original_course = courses[0]
-
-        course_id, course_term_id, starting_url_path, title, user_friendly_class_code = results[0]
-        self.assertEqual(course_id, original_course.course_id)
-        self.assertEqual(course_term_id, original_course.course_term_id)
-        self.assertEqual(starting_url_path, original_course.starting_url_path)
-        self.assertEqual(title, original_course.title)
-        self.assertEqual(user_friendly_class_code, original_course.user_friendly_class_code)
 
     def test_add_course_with_duplicate_starting_url(self):
         pass
