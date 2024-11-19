@@ -226,6 +226,13 @@ class TestCourseRepo(TestWithDatabaseContainer):
             cursor.execute(delete_query)
             self.connection.commit()
 
+    def test_check_if_user_has_editing_rights_if_not_enrolled(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+
+        result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
+        self.assertEqual(result, False)
+
     def test_add_new_course_and_get_id(self):
         new_course = Course(
             title="Visual Programming",
