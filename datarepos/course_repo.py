@@ -1,5 +1,7 @@
 from typing import Optional
 
+from mysql.connector import IntegrityError
+
 from custom_exceptions import AlreadyExistsException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.repo import Repo
@@ -102,8 +104,15 @@ class CourseRepo(Repo):
                   course.user_friendly_class_code)
 
         cursor = self.connection.cursor()
-        cursor.execute(add_course_query, params)
-        self.connection.commit()
+
+        try:
+            cursor.execute(add_course_query, params)
+            self.connection.commit()
+        except IntegrityError as e:
+            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+                raise AlreadyExistsException
+            else:
+                raise IntegrityError
 
         id = cursor.lastrowid
         return id
