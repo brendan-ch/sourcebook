@@ -7,7 +7,20 @@ from models.course import Course
 
 class CourseRepo(Repo):
     def get_all_course_enrollments_for_user_id(self, user_id: int) -> list[CourseEnrollment]:
-        pass
+        get_all_enrollments_query = '''
+        SELECT enrollment.course_id, enrollment.user_id, enrollment.role
+        FROM enrollment
+        WHERE enrollment.user_id = %s 
+        ORDER BY enrollment.role ASC, enrollment.course_id ASC
+        '''
+        params = (user_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_all_enrollments_query, params)
+        results = cursor.fetchall()
+
+        enrollments = [CourseEnrollment(**result) for result in results]
+        return enrollments
 
     def get_course_by_starting_url_if_exists(self, url: str) -> Optional[Course]:
         pass
