@@ -14,7 +14,7 @@ class Role(Enum):
 @dataclass
 class CourseEnrollment:
     role: Role
-    user_id: str
+    user_id: int
 
     course_id: int
     course: Optional[Course] = None
