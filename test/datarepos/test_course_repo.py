@@ -240,7 +240,32 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
 
     def test_add_course_with_duplicate_starting_url(self):
-        pass
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        duplicate_starting_url = courses[0].starting_url_path
+
+        course_with_duplicate_url = Course(
+            title="Database Management",
+            user_friendly_class_code="CPSC 408",
+            starting_url_path=duplicate_starting_url
+        )
+
+        with self.assertRaises(AlreadyExistsException):
+            self.course_repo.add_new_course_and_get_id(course_with_duplicate_url)
+
+        course_select_query = '''
+        SELECT course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
+        FROM course
+        WHERE course.starting_url_path = %s
+        '''
+        params = (duplicate_starting_url,)
+
+        self.assert_single_course_against_database_query(
+            course_select_query, courses[0], params
+        )
 
     def test_update_course_metadata_by_id(self):
         pass
