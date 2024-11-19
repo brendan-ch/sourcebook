@@ -346,9 +346,12 @@ class TestCourseRepo(TestWithDatabaseContainer):
         original_course = copy.deepcopy(courses[0])
         modified_course = courses[0]
 
-        # Modify fields except for starting url
         modified_course.title = "Data Structures and Algorithms"
         modified_course.user_friendly_class_code = "CPSC 350"
+
+        # Change the starting URL to that of another row
+        other_starting_url = courses[1].starting_url_path
+        modified_course.starting_url_path = other_starting_url
 
         with self.assertRaises(AlreadyExistsException):
             self.course_repo.update_course_metadata_by_id(modified_course)
