@@ -1,11 +1,10 @@
 import copy
 
 from custom_exceptions import AlreadyExistsException, NotFoundException, DependencyException
-from datarepos.course_enrollment import CourseEnrollment, Role
+from models.course_enrollment import CourseEnrollment, Role
 from datarepos.course_repo import CourseRepo
 from models.course import Course
 from models.course_term import CourseTerm
-from models.user import User
 from test.test_with_database_container import TestWithDatabaseContainer
 
 

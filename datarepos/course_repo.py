@@ -3,7 +3,7 @@ from typing import Optional
 from mysql.connector import IntegrityError
 
 from custom_exceptions import AlreadyExistsException, NotFoundException, DependencyException
-from datarepos.course_enrollment import CourseEnrollment, Role
+from models.course_enrollment import CourseEnrollment, Role
 from datarepos.repo import Repo
 from models.course import Course
 
