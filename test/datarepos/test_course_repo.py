@@ -1,3 +1,4 @@
+from custom_exceptions import AlreadyExistsException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.course_repo import CourseRepo
 from models.course import Course
@@ -212,7 +213,47 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertEqual(title, new_course.title)
         self.assertEqual(user_friendly_class_code, new_course.user_friendly_class_code)
 
-    def test_add_duplicate_course(self):
+    def test_add_course_with_id(self):
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        duplicate_course_id = courses[0].course_id
+
+        course_with_id = Course(
+            course_id=duplicate_course_id,
+            title="Database Management",
+            user_friendly_class_code="CPSC 408",
+            starting_url_path="/cpsc-408-s24" # non-duplicate
+        )
+
+        with self.assertRaises(AlreadyExistsException):
+            self.course_repo.add_new_course_and_get_id(course_with_id)
+
+        # Validate that no side effects occurred
+        course_select_query = '''
+        SELECT course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
+        FROM course
+        WHERE course.starting_url_path = %s
+        '''
+
+        cursor = self.connection.cursor()
+        cursor.execute(course_select_query)
+        results = cursor.fetchall()
+
+        self.assertEqual(len(results), 1)
+
+        original_course = courses[0]
+
+        course_id, course_term_id, starting_url_path, title, user_friendly_class_code = results[0]
+        self.assertEqual(course_id, original_course.course_id)
+        self.assertEqual(course_term_id, original_course.course_term_id)
+        self.assertEqual(starting_url_path, original_course.starting_url_path)
+        self.assertEqual(title, original_course.title)
+        self.assertEqual(user_friendly_class_code, original_course.user_friendly_class_code)
+
+    def test_add_course_with_duplicate_starting_url(self):
         pass
 
     def test_update_course_metadata_by_id(self):
