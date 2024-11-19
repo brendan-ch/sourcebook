@@ -23,7 +23,20 @@ class CourseRepo(Repo):
         return enrollments
 
     def get_course_by_starting_url_if_exists(self, url: str) -> Optional[Course]:
-        pass
+        get_course_query = '''
+        SELECT course.course_id, course.course_term_id, course.starting_url_path, course.title, course.user_friendly_class_code
+        FROM course
+        WHERE course.starting_url_path = %s
+        '''
+        params = (url,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_course_query, params)
+        result = cursor.fetchone()
+
+        if result:
+            return Course(**result)
+        return None
 
     def get_course_by_id_if_exists(self, course_id: int) -> Optional[Course]:
         pass
