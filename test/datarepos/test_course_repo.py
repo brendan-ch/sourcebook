@@ -105,8 +105,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
         self.connection.commit()
 
-        # Try running the method
-        # Validate the result
+        # Validate the result of running the method
         returned_course_enrollments = self.course_repo.get_all_course_enrollments_for_user_id(user.user_id)
 
         self.assertNotEqual(returned_course_enrollments, None)
@@ -119,7 +118,12 @@ class TestCourseRepo(TestWithDatabaseContainer):
             self.assertEqual(course_enrollment.user_id, returned_course_enrollment.user_id)
 
     def test_get_course_enrollments_for_user_id_if_no_enrollments(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+
+        returned_course_enrollments = self.course_repo.get_all_course_enrollments_for_user_id(user.user_id)
+
+        self.assertNotEqual(returned_course_enrollments, None)
+        self.assertEqual(len(returned_course_enrollments), 0)
 
     def test_get_course_by_id_if_exists(self):
         pass
