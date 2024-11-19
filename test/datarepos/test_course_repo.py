@@ -213,7 +213,9 @@ class TestCourseRepo(TestWithDatabaseContainer):
                 self.add_single_enrollment(enrollment)
 
                 result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
-                self.assertEqual(result, False)
+
+                expected_result = False if role == Role.STUDENT else True
+                self.assertEqual(result, expected_result)
 
             # Regardless of whether test fails or succeeds,
             # clear enrollments
