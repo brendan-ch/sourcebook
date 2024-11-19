@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Optional
 
 from models.course import Course
 
@@ -13,9 +14,11 @@ class Role(Enum):
 
 @dataclass
 class CourseEnrollment:
-    course: Course
     role: Role
     user_id: str
+
+    course_id: int
+    course: Optional[Course] = None
 
     def __post_init__(self):
         if isinstance(self.role, int):
