@@ -43,7 +43,7 @@ CREATE TABLE page (
     page_content MEDIUMTEXT NOT NULL,
     page_title VARCHAR(256),
 
-    course_id INT,
+    course_id INT NOT NULL,
     created_by_user_id INT,
 
     FOREIGN KEY (created_by_user_id) REFERENCES user(user_id),
@@ -69,7 +69,7 @@ CREATE TABLE page_file_bridge (
 
 CREATE TABLE attendance_session (
     attendance_session_id INT PRIMARY KEY AUTO_INCREMENT,
-    course_id INT,
+    course_id INT NOT NULL,
     opening_time DATETIME NOT NULL,
     closing_time DATETIME NOT NULL,
 
@@ -80,8 +80,8 @@ CREATE TABLE attendance_session (
 );
 
 CREATE TABLE attendance_record (
-    user_id INT,
-    attendance_session_id INT,
+    user_id INT NOT NULL,
+    attendance_session_id INT NOT NULL,
 
     PRIMARY KEY (user_id, attendance_session_id),
     FOREIGN KEY (user_id) REFERENCES user(user_id),
