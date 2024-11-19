@@ -180,7 +180,37 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertEqual(result, True)
 
     def test_add_new_course_and_get_id(self):
-        pass
+        new_course = Course(
+            title="Visual Programming",
+            user_friendly_class_code="CPSC 236",
+            starting_url_path="/cpsc-236-f24"
+        )
+
+        new_course.course_id = self.course_repo.add_new_course_and_get_id(new_course)
+        self.assertNotEqual(new_course.course_id, None)
+
+        # Validate side effects
+        course_select_query = '''
+        SELECT course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
+        FROM course
+        '''
+
+        cursor = self.connection.cursor()
+        cursor.execute(course_select_query)
+        results = cursor.fetchall()
+
+        self.assertEqual(len(results), 1)
+
+        course_id, course_term_id, starting_url_path, title, user_friendly_class_code = results[0]
+        self.assertEqual(course_id, new_course.course_id)
+        self.assertEqual(course_term_id, new_course.course_term_id)
+        self.assertEqual(starting_url_path, new_course.starting_url_path)
+        self.assertEqual(title, new_course.title)
+        self.assertEqual(user_friendly_class_code, new_course.user_friendly_class_code)
 
     def test_add_duplicate_course(self):
         pass
