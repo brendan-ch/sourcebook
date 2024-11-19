@@ -3,26 +3,13 @@ from typing import Optional
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
 from custom_exceptions import AlreadyExistsException
+from datarepos.repo import Repo
 from models.user import User
 
-MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE = 1062
 
-class UserRepo:
-    def __init__(self, connection = None):
-        if not connection:
-            self.connection = mysql.connector.connect(
-                host=DATABASE_HOST,
-                port=DATABASE_PORT,
-                user=DATABASE_USER,
-                password=DATABASE_PASSWORD,
-                database=DATABASE_SCHEMA_NAME
-            )
-        else:
-            self.connection = connection
 
-        self.connection_is_open = True
+class UserRepo(Repo):
 
     def get_user_role_in_class(self, user_id: str, class_id: str):
         # TODO implement after class data model is created
@@ -85,9 +72,5 @@ class UserRepo:
             row_id = cursor.lastrowid
             return row_id
         except mysql.connector.errors.IntegrityError as e:
-            if e.errno == MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
                 raise AlreadyExistsException
-
-    def close_connection(self):
-        self.connection.close()
-        self.connection_is_open = False
