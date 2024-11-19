@@ -384,7 +384,34 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assert_single_course_against_database_query(course_select_query, course_to_delete, params)
 
     def test_add_course_enrollment(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+
+        course_to_enroll = courses[0]
+
+        enrollment = CourseEnrollment(
+            course_id=course_to_enroll.course_id,
+            user_id = user.user_id,
+            role=Role.STUDENT
+        )
+
+        self.course_repo.add_course_enrollment(enrollment)
+
+        # Validate that the course enrollment was added
+        select_course_enrollment_query = '''
+        SELECT enrollment.course_id, enrollment.user_id, enrollment.role
+        FROM enrollment
+        '''
+
+        cursor = self.connection.cursor()
+        cursor.execute(select_course_enrollment_query)
+        results = cursor.fetchall()
+        self.assertEqual(len(results), 1)
+
+        course_id, user_id, role = results[0]
+        self.assertEqual(course_id, enrollment.course_id)
+        self.assertEqual(user_id, enrollment.user_id)
+        self.assertEqual(role, enrollment.role.value)
 
     def test_add_duplicate_course_enrollment(self):
         pass
