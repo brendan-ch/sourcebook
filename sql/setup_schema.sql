@@ -11,7 +11,7 @@ CREATE TABLE class_term (
 CREATE TABLE class (
     class_id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(64) NOT NULL,
-    class_term_id INT NOT NULL,
+    class_term_id INT,
 
     user_friendly_class_code VARCHAR(24) UNIQUE NOT NULL,
 
