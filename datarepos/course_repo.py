@@ -1,6 +1,6 @@
 from typing import Optional
 
-from datarepos.course_enrollment import CourseEnrollment
+from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.repo import Repo
 from models.course import Course
 
@@ -65,7 +65,22 @@ class CourseRepo(Repo):
         return None
 
     def check_whether_user_has_editing_rights(self, user_id: int, course_id: int) -> bool:
-        pass
+        get_enrollment_query = '''
+        SELECT enrollment.role
+        FROM enrollment
+        WHERE enrollment.user_id = %s 
+            AND enrollment.course_id = %s;
+        '''
+        params = (user_id, course_id)
+
+        cursor = self.connection.cursor()
+        cursor.execute(get_enrollment_query, params)
+        result, = cursor.fetchone()
+        role = Role(result)
+
+        if role == Role.STUDENT:
+            return False
+        return True
 
     def add_new_course_and_get_id(self, course: Course):
         pass
