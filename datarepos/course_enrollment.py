@@ -16,3 +16,7 @@ class CourseEnrollment:
     course: Course
     role: Role
     user_id: str
+
+    def __post_init__(self):
+        if isinstance(self.role, int):
+            self.role = Role(self.role)
