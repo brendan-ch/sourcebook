@@ -136,9 +136,6 @@ class TestCourseRepo(TestWithDatabaseContainer):
     def test_check_whether_assistant_has_editing_rights(self):
         pass
 
-    def test_check_whether_admin_has_editing_rights(self):
-        pass
-
     def test_add_new_course_and_get_id(self):
         pass
 
