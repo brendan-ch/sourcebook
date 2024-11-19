@@ -2,7 +2,7 @@
 CREATE TABLE course_term (
     course_term_id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(64) NOT NULL,
-    position INT NOT NULL,
+    position_from_top INT NOT NULL,
 
     -- whether to display associated classes on the starting page
     start_date DATETIME
