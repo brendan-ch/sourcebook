@@ -201,10 +201,24 @@ class CourseRepo(Repo):
 
         cursor = self.connection.cursor()
         cursor.execute(update_course_enrollment_query, params)
-        self.connection.commit()
 
         if cursor.rowcount < 1:
             raise NotFoundException
 
+        self.connection.commit()
+
     def delete_course_enrollment_by_id(self, course_id: int, user_id: int):
-        pass
+        delete_course_enrollment_query = '''
+        DELETE FROM enrollment
+        WHERE course_id = %s AND user_id = %s;
+        '''
+        params = (course_id, user_id)
+
+        cursor = self.connection.cursor()
+        cursor.execute(delete_course_enrollment_query, params)
+
+        if cursor.rowcount < 1:
+            raise NotFoundException
+
+        self.connection.commit()
+
