@@ -477,7 +477,31 @@ class TestCourseRepo(TestWithDatabaseContainer):
             self.assert_single_enrollment_against_database(enrollment)
 
     def test_delete_course_enrollment_by_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        course_to_enroll = courses[0]
+
+        enrollment = CourseEnrollment(
+            course_id=course_to_enroll.course_id,
+            user_id=user.user_id,
+            role=Role.STUDENT
+        )
+        self.add_single_enrollment(enrollment)
+
+        self.course_repo.delete_course_enrollment_by_id(enrollment.course_id, enrollment.user_id)
+
+        # Validate that it was deleted
+        select_enrollment_query = '''
+        SELECT enrollment.course_id, enrollment.user_id
+        FROM enrollment
+        WHERE enrollment.course_id = %s AND enrollment.user_id = %s
+        '''
+        params = (enrollment.course_id, enrollment.user_id)
+
+        cursor = self.connection.cursor()
+        cursor.execute(select_enrollment_query, params)
+        result = cursor.fetchone()
+        self.assertEqual(result, None)
 
     def test_delete_course_enrollment_by_id_if_not_exists(self):
         pass
