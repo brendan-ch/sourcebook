@@ -11,7 +11,7 @@ class CourseRepo(Repo):
         SELECT enrollment.course_id, enrollment.user_id, enrollment.role
         FROM enrollment
         WHERE enrollment.user_id = %s 
-        ORDER BY enrollment.role ASC, enrollment.course_id ASC
+        ORDER BY enrollment.role ASC, enrollment.course_id ASC;
         '''
         params = (user_id,)
 
@@ -24,9 +24,14 @@ class CourseRepo(Repo):
 
     def get_course_by_starting_url_if_exists(self, url: str) -> Optional[Course]:
         get_course_query = '''
-        SELECT course.course_id, course.course_term_id, course.starting_url_path, course.title, course.user_friendly_class_code
+        SELECT
+            course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
         FROM course
-        WHERE course.starting_url_path = %s
+        WHERE course.starting_url_path = %s;
         '''
         params = (url,)
 
@@ -39,7 +44,25 @@ class CourseRepo(Repo):
         return None
 
     def get_course_by_id_if_exists(self, course_id: int) -> Optional[Course]:
-        pass
+        get_course_query = '''
+        SELECT
+            course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
+        FROM course
+        WHERE course.course_id = %s;
+        '''
+        params = (course_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_course_query, params)
+        result = cursor.fetchone()
+
+        if result:
+            return Course(**result)
+        return None
 
     def check_whether_user_has_editing_rights(self, user_id: int, course_id: int) -> bool:
         pass
