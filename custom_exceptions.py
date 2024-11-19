@@ -6,4 +6,7 @@ class NotFoundException(Exception):
     pass
 
 
+class DependencyException(Exception):
+    pass
+
 

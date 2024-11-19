@@ -1,12 +1,13 @@
 import copy
 
-from custom_exceptions import AlreadyExistsException, NotFoundException
+from custom_exceptions import AlreadyExistsException, NotFoundException, DependencyException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.course_repo import CourseRepo
 from models.course import Course
 from models.course_term import CourseTerm
 from models.user import User
 from test.test_with_database_container import TestWithDatabaseContainer
+
 
 
 class TestCourseRepo(TestWithDatabaseContainer):
@@ -329,11 +330,58 @@ class TestCourseRepo(TestWithDatabaseContainer):
         params = (original_course.course_id,)
         self.assert_single_course_against_database_query(course_select_query, original_course, params)
 
-    def test_delete_course_by_id_if_exists(self):
-        pass
+    def test_delete_course_by_id_if_exists_and_no_dependencies(self):
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        course_to_delete = courses[0]
+
+        self.course_repo.delete_course_by_id(course_to_delete.course_id)
+
+        course_select_query = '''
+        SELECT course.course_id
+        FROM course
+        WHERE course.course_id = %s
+        '''
+        params = (course_to_delete.course_id,)
+
+        cursor = self.connection.cursor()
+        cursor.execute(course_select_query, params)
+        result = cursor.fetchone()
+        self.assertEqual(result, None)
 
     def test_delete_course_by_id_if_not_exists(self):
-        pass
+        nonexistent_course_id = 1
+
+        with self.assertRaises(NotFoundException):
+            self.course_repo.delete_course_by_id(nonexistent_course_id)
+
+    def test_delete_course_by_id_if_exists_and_dependencies(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        course_to_delete = courses[0]
+
+        # Add dependencies in the form of course enrollments
+        enrollment = CourseEnrollment(
+            course_id=course_to_delete.course_id,
+            user_id = user.user_id,
+            role=Role.STUDENT
+        )
+        self.add_single_enrollment(enrollment)
+
+        with self.assertRaises(DependencyException):
+            self.course_repo.delete_course_by_id(course_to_delete.course_id)
+
+        # Validate that the course was not deleted
+        course_select_query = '''
+        SELECT course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title,
+            course.user_friendly_class_code
+        FROM course
+        WHERE course.course_id = %s
+        '''
+        params = (course_to_delete.course_id,)
+        self.assert_single_course_against_database_query(course_select_query, course_to_delete, params)
 
     def test_add_course_enrollment(self):
         pass
