@@ -2,10 +2,11 @@ import mysql.connector
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
 
-MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE = 1062
 
 
 class Repo:
+    MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE = 1062
+
     def __init__(self, connection = None):
         if not connection:
             self.connection = mysql.connector.connect(

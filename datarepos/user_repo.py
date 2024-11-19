@@ -72,5 +72,5 @@ class UserRepo(Repo):
             row_id = cursor.lastrowid
             return row_id
         except mysql.connector.errors.IntegrityError as e:
-            if e.errno == MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
                 raise AlreadyExistsException
