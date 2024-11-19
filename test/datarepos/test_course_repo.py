@@ -492,10 +492,8 @@ class TestCourseRepo(TestWithDatabaseContainer):
             role=Role.STUDENT
         )
 
-        self.course_repo.update_role_by_course_and_user_id(enrollment)
-
         with self.assertRaises(NotFoundException):
-            self.assert_single_enrollment_against_database(enrollment)
+            self.course_repo.update_role_by_course_and_user_id(enrollment)
 
     def test_delete_course_enrollment_by_id(self):
         user, _ = self.add_sample_user_to_test_db()
