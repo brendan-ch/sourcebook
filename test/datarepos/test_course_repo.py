@@ -169,6 +169,22 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertNotEqual(returned_course_enrollments, None)
         self.assertEqual(len(returned_course_enrollments), 0)
 
+    def test_get_course_by_starting_url_if_exists(self):
+        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+
+        returned_course = self.course_repo.get_course_by_starting_url_if_exists(courses[0].starting_url_path)
+        self.assertNotEqual(returned_course, None)
+        self.assertEqual(returned_course.course_id, courses[0].course_id)
+        self.assertEqual(returned_course.course_term_id, courses[0].course_term_id)
+        self.assertEqual(returned_course.starting_url_path, courses[0].starting_url_path)
+        self.assertEqual(returned_course.user_friendly_class_code, courses[0].user_friendly_class_code)
+        self.assertEqual(returned_course.title, courses[0].title)
+
+    def test_get_course_by_starting_url_if_not_exists(self):
+        nonexistent_starting_url = "/test"
+        returned_course = self.course_repo.get_course_by_starting_url_if_exists(nonexistent_starting_url)
+        self.assertEqual(returned_course, None)
+
     def test_get_course_by_id_if_exists(self):
         courses = self.add_sample_course_term_and_course_enrollment_cluster()
 
