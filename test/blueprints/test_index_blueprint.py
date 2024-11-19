@@ -8,7 +8,12 @@ class TestIndexBlueprint(TestFlaskApp):
 
     def test_sign_in_page(self):
         response = self.app.get("/sign-in")
-        pass
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Sign in", response.data)
+        self.assertIn(b"<index", response.data)
+        self.assertIn(b"<button", response.data)
+
+        # TODO install and use BeautifulSoup for UI testing
 
     def test_sign_in_with_correct_credentials(self):
         # TODO set up database
