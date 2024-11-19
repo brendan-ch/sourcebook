@@ -154,7 +154,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertNotEqual(returned_course_enrollments, None)
         self.assertEqual(len(returned_course_enrollments), len(course_enrollments))
 
-        # Validate the order by using strictly indices
+        # Validate ordering by role, then course ID
         for course_enrollment, returned_course_enrollment in zip(course_enrollments, returned_course_enrollments):
             self.assertEqual(course_enrollment.course_id, returned_course_enrollment.course_id)
             self.assertEqual(course_enrollment.role, returned_course_enrollment.role)
