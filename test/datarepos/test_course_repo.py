@@ -1,4 +1,4 @@
-from custom_exceptions import AlreadyExistsException
+from custom_exceptions import AlreadyExistsException, NotFoundException
 from datarepos.course_enrollment import CourseEnrollment, Role
 from datarepos.course_repo import CourseRepo
 from models.course import Course
@@ -293,7 +293,14 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
 
     def test_update_nonexistent_course_metadata(self):
-        pass
+        new_course = Course(
+            title="Visual Programming",
+            user_friendly_class_code="CPSC 236",
+            starting_url_path="/cpsc-236-f24"
+        )
+
+        with self.assertRaises(NotFoundException):
+            self.course_repo.update_course_metadata_by_id(new_course)
 
     def test_update_course_metadata_with_duplicate_starting_url(self):
         pass
