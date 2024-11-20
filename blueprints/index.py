@@ -12,7 +12,7 @@ def all_classes_page():
 @index_bp.route("/sign-in", methods=["GET", "POST"])
 def sign_in_page():
     if request.method == "GET":
-        if session["user_id"]:
+        if "user_id" in session:
             return redirect("/")
 
         return render_template("sign_in.html")
@@ -37,3 +37,10 @@ def sign_in_page():
 
         session["user_id"] = user_id
         return redirect("/")
+
+@index_bp.route("/sign-out", methods=["GET"])
+def sign_out_page():
+    if "user_id" in session:
+        session.pop("user_id")
+
+    return redirect("/")
