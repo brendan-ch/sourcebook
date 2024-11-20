@@ -6,6 +6,8 @@ index_bp = Blueprint("index", __name__)
 
 @index_bp.route("/")
 def your_classes_page():
+    if "user_id" not in session:
+        return redirect("/sign-in")
     return render_template("your_classes.html")
 
 @index_bp.route("/sign-in", methods=["GET", "POST"])
