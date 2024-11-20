@@ -172,6 +172,55 @@ class TestCourseRepo(TestWithDatabaseContainer):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
 
+        # Enroll the user in some of the courses
+        course_terms_to_enroll_user_in = course_terms[:2]
+        courses_to_enroll_user_in_as_student = courses[:2]
+        courses_to_enroll_user_in_as_assistant = courses[2:3]
+        courses_to_not_enroll_user_in = courses[3:]
+
+        for course_to_check in courses_to_enroll_user_in_as_student:
+            enrollment = CourseEnrollment(
+                user_id=user.user_id,
+                course_id=course_to_check.course_id,
+                role=Role.STUDENT,
+            )
+            self.add_single_enrollment(enrollment)
+
+        for course_to_check in courses_to_enroll_user_in_as_assistant:
+            enrollment = CourseEnrollment(
+                user_id=user.user_id,
+                course_id=course_to_check.course_id,
+                role=Role.ASSISTANT,
+            )
+            self.add_single_enrollment(enrollment)
+
+        # Validate the course terms returned and the order
+        course_terms_with_courses = self.course_repo.get_course_terms_with_courses_for_user_id(user.user_id)
+        self.assertIsNotNone(course_terms_with_courses)
+        for course_term_with_courses, original_course_term in zip(course_terms_with_courses, course_terms_to_enroll_user_in):
+            self.assertEqual(course_term_with_courses.title, original_course_term.title)
+            self.assertEqual(course_term_with_courses.course_term_id, original_course_term.course_term_id)
+            self.assertEqual(course_term_with_courses.position_from_top, original_course_term.position_from_top)
+
+            # Verify that each course present on the returned object is supposed to be there
+            for course_to_check in course_term_with_courses.courses:
+                matching_courses = [enrolled_course for enrolled_course in courses_to_enroll_user_in_as_student if enrolled_course.course_id == course_to_check.course_id]
+                if not matching_courses:
+                    matching_courses = [enrolled_course for enrolled_course in courses_to_enroll_user_in_as_assistant if enrolled_course.course_id == course_to_check.course_id]
+
+                self.assertEqual(len(matching_courses), 1)
+                matching_course = matching_courses[0]
+
+                self.assertEqual(matching_course.course_term_id, course_to_check.course_term_id)
+                self.assertEqual(matching_course.starting_url_path, course_to_check.starting_url_path)
+                self.assertEqual(matching_course.title, original_course_term.title)
+                self.assertEqual(matching_course.user_friendly_class_code, course_to_check.user_friendly_class_code)
+
+            # Verify that courses which shouldn't appear shouldn't appear
+            for non_appearing_course in courses_to_not_enroll_user_in:
+                course_ids = [course.course_id for course in course_term_with_courses.courses]
+                self.assertNotIn(non_appearing_course.course_id, course_ids)
+
     def test_get_course_terms_with_courses_if_no_enrollments(self):
         pass
 
