@@ -1,9 +1,12 @@
 import unittest
 
-from app import app
+from app import create_app
+from test.test_with_database_container import TestWithDatabaseContainer
 
 
-class TestFlaskApp(unittest.TestCase):
+class TestFlaskApp(TestWithDatabaseContainer):
     def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
+        super().setUp()
+        self.app = create_app()
+        self.test_client = self.app.test_client()
+        self.test_client.testing = True
