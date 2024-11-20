@@ -168,6 +168,13 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertNotEqual(returned_course_enrollments, None)
         self.assertEqual(len(returned_course_enrollments), 0)
 
+    def test_get_course_terms_with_courses_for_user_id(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_enrollment_cluster()
+
+    def test_get_course_terms_with_courses_if_no_enrollments(self):
+        pass
+
     def test_get_course_by_starting_url_if_exists(self):
         courses = self.add_sample_course_term_and_course_enrollment_cluster()
 
