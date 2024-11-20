@@ -24,7 +24,7 @@ class TestIndexBlueprint(TestFlaskApp):
 
         session_cookie = response.headers.get("Set-Cookie")
         self.assertIsNotNone(session_cookie)
-        self.assertIn(b"session=", session_cookie)
+        self.assertIn("session=", session_cookie)
 
     def test_sign_in_with_incorrect_credentials(self):
         response = self.test_client.post("/sign-in", data={
