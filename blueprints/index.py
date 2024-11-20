@@ -5,9 +5,8 @@ from flask_repository_getters import get_user_repository
 index_bp = Blueprint("index", __name__)
 
 @index_bp.route("/")
-def all_classes_page():
-    # return render_template("all_classes.html")
-    return "All classes page"
+def your_classes_page():
+    return render_template("your_classes.html")
 
 @index_bp.route("/sign-in", methods=["GET", "POST"])
 def sign_in_page():
