@@ -9,7 +9,7 @@ class TestIndexBlueprint(TestFlaskApp):
         response = self.test_client.get("/sign-in")
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Sign in", response.data)
-        self.assertIn(b"<index", response.data)
+        self.assertIn(b"<input", response.data)
         self.assertIn(b"<button", response.data)
 
         # TODO install and use BeautifulSoup for UI testing
