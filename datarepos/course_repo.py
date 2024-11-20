@@ -6,6 +6,7 @@ from custom_exceptions import AlreadyExistsException, NotFoundException, Depende
 from models.course_enrollment import CourseEnrollment, Role
 from datarepos.repo import Repo
 from models.course import Course
+from models.course_term_with_courses import CourseTermWithCourses
 
 
 class CourseRepo(Repo):
@@ -24,6 +25,9 @@ class CourseRepo(Repo):
 
         enrollments = [CourseEnrollment(**result) for result in results]
         return enrollments
+
+    def get_course_terms_with_courses_for_user_id(self, user_id: int, limit: Optional[int] = None) -> list[CourseTermWithCourses]:
+        pass
 
     def get_course_by_starting_url_if_exists(self, url: str) -> Optional[Course]:
         get_course_query = '''
