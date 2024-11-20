@@ -37,3 +37,7 @@ def sign_in_page():
 
         session["user_id"] = user_id
         return redirect("/")
+
+@index_bp.route("/sign-out", methods=["GET"])
+def sign_out_page():
+    pass
