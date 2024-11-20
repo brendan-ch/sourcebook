@@ -37,5 +37,22 @@ class TestIndexBlueprint(TestFlaskApp):
         self.assertEqual(response.status_code, 401)
         self.assertIn("Incorrect email or password, please try again", response.data)
 
-    def test_sign_in_with_missing_field(self):
-        pass
+    def test_sign_in_with_missing_email(self):
+        new_user, sample_password = self.add_sample_user_to_test_db()
+
+        response = self.test_client.post("/sign-in", data={
+            "password": sample_password
+        })
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Please fill out all missing fields", response.data)
+
+    def test_sign_in_with_missing_password(self):
+        new_user, sample_password = self.add_sample_user_to_test_db()
+
+        response = self.test_client.post("/sign-in", data={
+            "email": new_user.email,
+        })
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Please fill out all missing fields", response.data)
