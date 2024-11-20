@@ -222,7 +222,12 @@ class TestCourseRepo(TestWithDatabaseContainer):
                 self.assertNotIn(non_appearing_course.course_id, course_ids)
 
     def test_get_course_terms_with_courses_if_no_enrollments(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        self.add_sample_course_term_and_course_cluster()
+
+        course_terms = self.course_repo.get_course_terms_with_courses_for_user_id(user.user_id)
+        self.assertIsNotNone(course_terms)
+        self.assertEqual(len(course_terms), 0)
 
     def test_get_course_by_starting_url_if_exists(self):
         courses, _ = self.add_sample_course_term_and_course_cluster()
