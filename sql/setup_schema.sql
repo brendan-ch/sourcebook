@@ -19,7 +19,12 @@ CREATE TABLE course (
 );
 
 CREATE TABLE user (
+    -- for internal backend code
     user_id INT PRIMARY KEY AUTO_INCREMENT,
+
+    -- for public-facing code, like authentication
+    user_uuid CHAR(36) UNIQUE NOT NULL,
+
     full_name VARCHAR(64) NOT NULL,
     email VARCHAR(128) UNIQUE NOT NULL,
     -- hashed password is fixed length
@@ -88,3 +93,17 @@ CREATE TABLE attendance_record (
     FOREIGN KEY (attendance_session_id) REFERENCES attendance_session(attendance_session_id)
 );
 
+-- Triggers
+DELIMITER //
+CREATE TRIGGER before_insert_trigger
+    BEFORE INSERT ON user
+    FOR EACH ROW
+BEGIN
+    DECLARE new_uuid CHAR(36);
+    REPEAT
+        SET new_uuid = UUID();
+    UNTIL NOT EXISTS (SELECT 1 FROM user WHERE user.user_uuid = new_uuid)
+        END REPEAT;
+    SET NEW.user_uuid = new_uuid;
+END //
+DELIMITER ;
