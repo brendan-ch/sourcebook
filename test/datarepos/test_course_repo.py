@@ -95,29 +95,12 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_get_course_terms_with_courses_for_user_id(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses, course_terms = self.add_sample_course_term_and_course_cluster()
-
-        # Enroll the user in some of the courses
-        course_terms_to_enroll_user_in = course_terms[:2]
-        courses_to_enroll_user_in_as_student = courses[:2]
-        courses_to_enroll_user_in_as_assistant = courses[2:3]
-        courses_to_not_enroll_user_in = courses[3:]
-
-        for course_to_check in courses_to_enroll_user_in_as_student:
-            enrollment = CourseEnrollment(
-                user_id=user.user_id,
-                course_id=course_to_check.course_id,
-                role=Role.STUDENT,
-            )
-            self.add_single_enrollment(enrollment)
-
-        for course_to_check in courses_to_enroll_user_in_as_assistant:
-            enrollment = CourseEnrollment(
-                user_id=user.user_id,
-                course_id=course_to_check.course_id,
-                role=Role.ASSISTANT,
-            )
-            self.add_single_enrollment(enrollment)
+        (
+            course_terms_to_enroll_user_in,
+            courses_to_enroll_user_in_as_assistant,
+            courses_to_enroll_user_in_as_student,
+            courses_to_not_enroll_user_in
+        ) = self.add_sample_course_term_and_course_enrollment_cluster(user.user_id)
 
         # Validate the course terms returned and the order
         course_terms_with_courses = self.course_repo.get_course_terms_with_courses_for_user_id(user.user_id)

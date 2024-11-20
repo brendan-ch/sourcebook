@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash
 from config import TEST_CONTAINER_IMAGE
 from db_connection_details import DBConnectionDetails
 from models.course import Course
-from models.course_enrollment import CourseEnrollment
+from models.course_enrollment import CourseEnrollment, Role
 from models.course_term import CourseTerm
 from models.user import User
 
@@ -154,3 +154,28 @@ class TestWithDatabaseContainer(unittest.TestCase):
         cursor = self.connection.cursor()
         cursor.execute(insert_enrollment_query, params)
         self.connection.commit()
+
+    def add_sample_course_term_and_course_enrollment_cluster(self, user_id: int):
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+
+        # Enroll the user in some of the courses
+        course_terms_to_enroll_user_in = course_terms[:2]
+        courses_to_enroll_user_in_as_student = courses[:2]
+        courses_to_enroll_user_in_as_assistant = courses[2:3]
+        courses_to_not_enroll_user_in = courses[3:]
+
+        for course_to_check in courses_to_enroll_user_in_as_student:
+            enrollment = CourseEnrollment(
+                user_id=user_id,
+                course_id=course_to_check.course_id,
+                role=Role.STUDENT,
+            )
+            self.add_single_enrollment(enrollment)
+        for course_to_check in courses_to_enroll_user_in_as_assistant:
+            enrollment = CourseEnrollment(
+                user_id=user_id,
+                course_id=course_to_check.course_id,
+                role=Role.ASSISTANT,
+            )
+            self.add_single_enrollment(enrollment)
+        return course_terms_to_enroll_user_in, courses_to_enroll_user_in_as_assistant, courses_to_enroll_user_in_as_student, courses_to_not_enroll_user_in
