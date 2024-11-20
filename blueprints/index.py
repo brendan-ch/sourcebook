@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect
+from flask import Blueprint, render_template, request, session, redirect, flash
 
 from flask_repository_getters import get_user_repository
 
@@ -12,21 +12,25 @@ def all_classes_page():
 @index_bp.route("/sign-in", methods=["GET", "POST"])
 def sign_in_page():
     if request.method == "GET":
-        return "Sign in page"
-        # return render_template("sign_in.html")
+        return render_template("sign_in.html")
     else:
         email = request.form.get("email")
         password = request.form.get("password")
 
         if not email or not password:
-            # TODO flash message in rendering template
-            return "Please fill out all missing fields", 400
+            return render_template(
+                "sign_in.html",
+                error="Please fill out all missing fields."
+            ), 400
 
         user_repository = get_user_repository()
         user_id = user_repository.get_user_id_if_credentials_match(email, password)
 
         if not user_id:
-            return "Incorrect email or password, please try again", 401
+            return render_template(
+                "sign_in.html",
+                error="Incorrect email or password, please try again."
+            ), 401
 
         session["user_id"] = user_id
         return redirect("/")
