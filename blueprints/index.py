@@ -12,6 +12,9 @@ def all_classes_page():
 @index_bp.route("/sign-in", methods=["GET", "POST"])
 def sign_in_page():
     if request.method == "GET":
+        if session["user_id"]:
+            return redirect("/")
+
         return render_template("sign_in.html")
     else:
         email = request.form.get("email")
