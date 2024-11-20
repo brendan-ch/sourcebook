@@ -1,13 +1,13 @@
 import unittest
 from pathlib import Path
 from os import system
-from subprocess import Popen, PIPE
 
 import mysql.connector
 from testcontainers.mysql import MySqlContainer
 from werkzeug.security import generate_password_hash
 
 from config import TEST_CONTAINER_IMAGE
+from db_connection_details import DBConnectionDetails
 from models.user import User
 
 TEST_ROOT_PASSWORD = "12345"
@@ -26,19 +26,16 @@ class TestWithDatabaseContainer(unittest.TestCase):
         cls.mysql_container.stop()
 
     def setUp(self):
-        host = self.mysql_container.get_container_host_ip()
-        port = self.mysql_container.get_exposed_port(3306)
-        user = self.mysql_container.username
-        password = self.mysql_container.password
-        database = self.mysql_container.dbname
-
-        self.connection = mysql.connector.connect(
-            host=host,
-            port=port,
-            user=user,
-            password=password,
-            database=database,
+        self.database_config = DBConnectionDetails(
+            host=self.mysql_container.get_container_host_ip(),
+            port=self.mysql_container.get_exposed_port(3306),
+            user=self.mysql_container.username,
+            password=self.mysql_container.password,
+            database=self.mysql_container.dbname
         )
+        config_vars = vars(self.database_config)
+
+        self.connection = mysql.connector.connect(**config_vars)
 
         cursor = self.connection.cursor()
         cursor.execute("USE test;")
@@ -48,7 +45,7 @@ class TestWithDatabaseContainer(unittest.TestCase):
         setup_sql_schema_path = project_root / 'sql' / 'setup_schema.sql'
 
         # Login as root to execute CREATE TRIGGER statements
-        command = f'mysql -u root -p{TEST_ROOT_PASSWORD} --host={'127.0.0.1' if host == 'localhost' else host} --port={port} {database} < "{setup_sql_schema_path}"'
+        command = f'mysql -u root -p{TEST_ROOT_PASSWORD} --host={'127.0.0.1' if self.database_config.host == 'localhost' else self.database_config.host} --port={self.database_config.port} {self.database_config.database} < "{setup_sql_schema_path}"'
         system(command)
 
     def tearDown(self):
