@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Optional
 
 from mysql.connector import IntegrityError
@@ -27,7 +28,62 @@ class CourseRepo(Repo):
         return enrollments
 
     def get_course_terms_with_courses_for_user_id(self, user_id: int) -> list[CourseTermWithCourses]:
-        pass
+        get_courses_and_course_terms_query = '''
+        SELECT
+            course.course_id,
+            course.course_term_id,
+            course.starting_url_path,
+            course.title as course_title,
+            course.user_friendly_class_code,
+            course_term.title as course_term_title,
+            course_term.position_from_top
+        FROM course
+        INNER JOIN course_term
+            ON course.course_term_id = course_term.course_term_id
+        INNER JOIN enrollment
+            ON course.course_id = enrollment.course_id
+        WHERE enrollment.user_id = %s
+        ORDER BY course_term.position_from_top ASC, course.user_friendly_class_code ASC
+        '''
+        params = (user_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_courses_and_course_terms_query, params)
+        results = cursor.fetchall()
+
+        course_terms_dict = defaultdict(list[Course])
+
+        # Group courses by course_term_id
+        for result in results:
+            course = Course(
+                title=result["course_title"],
+                user_friendly_class_code=result["user_friendly_class_code"],
+                starting_url_path=result["starting_url_path"],
+                course_term_id=result["course_term_id"],
+                course_id=result["course_id"],
+            )
+            course_terms_dict[(
+                result["course_term_id"],
+                result["course_term_title"],
+                result["position_from_top"]
+            )].append(course)
+
+        course_terms_with_courses = [
+            CourseTermWithCourses(
+                title=term_title,
+                position_from_top=position_from_top,
+                course_term_id=term_id,
+                courses=courses,
+            )
+            for (
+                term_id,
+                term_title,
+                position_from_top,
+            ), courses in course_terms_dict.items()
+        ]
+
+        return course_terms_with_courses
+
 
     def get_course_by_starting_url_if_exists(self, url: str) -> Optional[Course]:
         get_course_query = '''
