@@ -213,7 +213,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
                 self.assertEqual(matching_course.course_term_id, course_to_check.course_term_id)
                 self.assertEqual(matching_course.starting_url_path, course_to_check.starting_url_path)
-                self.assertEqual(matching_course.title, original_course_term.title)
+                self.assertEqual(matching_course.title, course_to_check.title)
                 self.assertEqual(matching_course.user_friendly_class_code, course_to_check.user_friendly_class_code)
 
             # Verify that courses which shouldn't appear shouldn't appear
