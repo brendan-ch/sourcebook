@@ -31,34 +31,27 @@
 
 <h1>Your Classes</h1>
 
-<h2>Fall 2024</h2>
+{% for course_term in course_terms_with_courses %}
 
-<ul>
-{#    TODO dynamically generate content #}
-    <li>
-        <a href="#">CPSC 408</a>
-    </li>
-    <li>
-        <a href="#">CPSC 236</a>
-    </li>
-    <li>
-        <a href="#">GAME 242</a>
-    </li>
-    <li>
-        <a href="#">SE 300</a>
-    </li>
-    <li>
-        <a href="#">SE 310</a>
-    </li>
-    <li>
-        <a href="#">CHIN 347</a>
-    </li>
-</ul>
+    <h2>{{ course_term.title }}</h2>
+
+    <ul>
+        {% for course in course_term.courses %}
+
+        <li>
+            <a href="{{ course.starting_url_path }}">{{ course.user_friendly_class_code }} - {{ course.title }}</a>
+        </li>
+
+        {% endfor %}
+    </ul>
+
+{% endfor %}
+
+{% if course_terms_with_courses is not defined %}
+<p>No courses to display.</p>
+{% endif %}
 
 <br>
-<p>
-    <a href="#">View past classes</a>
-</p>
 
 <p class="footer">
     Signed in as Brendan (brechen@chapman.edu)
