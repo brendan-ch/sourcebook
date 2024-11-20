@@ -8,6 +8,9 @@ from werkzeug.security import generate_password_hash
 
 from config import TEST_CONTAINER_IMAGE
 from db_connection_details import DBConnectionDetails
+from models.course import Course
+from models.course_enrollment import CourseEnrollment
+from models.course_term import CourseTerm
 from models.user import User
 
 TEST_ROOT_PASSWORD = "12345"
@@ -77,3 +80,77 @@ class TestWithDatabaseContainer(unittest.TestCase):
         self.connection.commit()
 
         return new_user, sample_password
+
+    def add_sample_course_term_and_course_cluster(self):
+        course_terms = [
+            CourseTerm(
+                title="Fall 2024",
+                position_from_top=1
+            ),
+            CourseTerm(
+                title="Spring 2024",
+                position_from_top=2
+            ),
+            CourseTerm(
+                title="Interterm 2024",
+                position_from_top=3
+            ),
+            CourseTerm(
+                title="Fall 2023",
+                position_from_top=4
+            ),
+        ]
+        insert_course_term_query = '''
+        INSERT INTO course_term(title, position_from_top)
+        VALUES (%s, %s);
+        '''
+        for course_term in course_terms:
+            params = (course_term.title, course_term.position_from_top)
+            cursor = self.connection.cursor()
+            cursor.execute(insert_course_term_query, params)
+
+            course_term.course_term_id = cursor.lastrowid
+        self.connection.commit()
+
+        courses = [
+            Course(
+                title="Visual Programming",
+                user_friendly_class_code="CPSC 236",
+                starting_url_path="/cpsc-236-f24",
+                course_term_id=course_terms[0].course_term_id,
+            ),
+            Course(
+                title="Database Management",
+                user_friendly_class_code="CPSC 408",
+                starting_url_path="/cpsc-408-f24",
+                course_term_id=course_terms[0].course_term_id,
+            ),
+            Course(
+                title="Operating Systems",
+                user_friendly_class_code="CPSC 380",
+                starting_url_path="/cpsc-380-s24",
+                course_term_id=course_terms[1].course_term_id,
+            ),
+        ]
+        insert_course_query = '''
+        INSERT INTO course(title, user_friendly_class_code, starting_url_path, course_term_id)
+        VALUES (%s, %s, %s, %s);
+        '''
+        for course in courses:
+            params = (course.title, course.user_friendly_class_code, course.starting_url_path, course.course_term_id)
+            cursor = self.connection.cursor()
+            cursor.execute(insert_course_query, params)
+
+            course.course_id = cursor.lastrowid
+        self.connection.commit()
+        return courses, course_terms
+
+    def add_single_enrollment(self, enrollment: CourseEnrollment):
+        insert_enrollment_query = '''
+        INSERT INTO enrollment(course_id, role, user_id)
+        VALUES (%s, %s, %s);
+        '''
+        params = (enrollment.course_id, enrollment.role.value, enrollment.user_id)
+        cursor = self.connection.cursor()
+        cursor.execute(insert_enrollment_query, params)
+        self.connection.commit()
