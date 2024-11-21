@@ -51,3 +51,9 @@ class TestCourseBlueprint(TestFlaskApp):
         self.assertEqual(response.status_code, 401)
 
         # TODO assert 401 page content
+
+    def test_course_home_page_content_if_not_enrolled_and_public(self):
+        pass
+
+    def test_course_home_page_content_if_not_exists(self):
+        pass
