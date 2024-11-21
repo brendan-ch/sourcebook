@@ -10,11 +10,6 @@ from models.user import User
 
 
 class UserRepo(Repo):
-
-    def get_user_role_in_class(self, user_id: str, class_id: str):
-        # TODO implement after class data model is created
-        raise NotImplemented
-
     def get_user_id_if_credentials_match(self, email: str, given_password: str) -> Optional[str]:
         get_user_query = '''
         SELECT user_id, hashed_password

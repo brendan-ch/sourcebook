@@ -128,6 +128,7 @@ class CourseRepo(Repo):
         return None
 
     def check_whether_user_has_editing_rights(self, user_id: int, course_id: int) -> bool:
+        # TODO change this to get the enrollment?
         get_enrollment_query = '''
         SELECT enrollment.role
         FROM enrollment
@@ -237,6 +238,10 @@ class CourseRepo(Repo):
             raise NotFoundException
 
         self.connection.commit()
+
+    def get_user_role_in_class_if_exists(self, user_id: str, class_id: str) -> Optional[Role]:
+        # TODO implement after class data model is created
+        pass
 
     def add_course_enrollment(self, course_enrollment: CourseEnrollment):
         add_course_enrollment_query = '''
