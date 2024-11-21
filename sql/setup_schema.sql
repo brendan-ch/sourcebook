@@ -44,12 +44,17 @@ CREATE TABLE enrollment (
 CREATE TABLE page (
     page_id INT PRIMARY KEY AUTO_INCREMENT,
     page_visibility_setting INT NOT NULL,
-    url_path VARCHAR(128) NOT NULL UNIQUE,
     page_content MEDIUMTEXT NOT NULL,
     page_title VARCHAR(256),
 
+    url_path_after_course_path VARCHAR(128) NOT NULL,
     course_id INT NOT NULL,
+
+    -- may be empty if the user is deleted
     created_by_user_id INT,
+
+    -- combination of URL path and course id must be unique
+    UNIQUE (url_path_after_course_path, course_id),
 
     FOREIGN KEY (created_by_user_id) REFERENCES user(user_id),
     FOREIGN KEY (course_id) REFERENCES course(course_id)
