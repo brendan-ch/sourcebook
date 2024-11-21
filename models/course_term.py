@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 
-@dataclass
+@dataclass(kw_only=True)
 class CourseTerm:
     title: str
     position_from_top: int

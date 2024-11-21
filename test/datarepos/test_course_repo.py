@@ -4,7 +4,6 @@ from custom_exceptions import AlreadyExistsException, NotFoundException, Depende
 from models.course_enrollment import CourseEnrollment, Role
 from datarepos.course_repo import CourseRepo
 from models.course import Course
-from models.course_term import CourseTerm
 from test.test_with_database_container import TestWithDatabaseContainer
 
 
@@ -13,80 +12,6 @@ class TestCourseRepo(TestWithDatabaseContainer):
     def setUp(self):
         super().setUp()
         self.course_repo = CourseRepo(self.connection)
-
-    def add_sample_course_term_and_course_enrollment_cluster(self):
-        course_terms = [
-            CourseTerm(
-                title="Fall 2024",
-                position_from_top=1
-            ),
-            CourseTerm(
-                title="Spring 2024",
-                position_from_top=2
-            ),
-            CourseTerm(
-                title="Interterm 2024",
-                position_from_top=3
-            ),
-            CourseTerm(
-                title="Fall 2023",
-                position_from_top=4
-            ),
-        ]
-        insert_course_term_query = '''
-        INSERT INTO course_term(title, position_from_top)
-        VALUES (%s, %s);
-        '''
-        for course_term in course_terms:
-            params = (course_term.title, course_term.position_from_top)
-            cursor = self.connection.cursor()
-            cursor.execute(insert_course_term_query, params)
-
-            course_term.course_term_id = cursor.lastrowid
-        self.connection.commit()
-
-        courses = [
-            Course(
-                title="Visual Programming",
-                user_friendly_class_code="CPSC 236",
-                starting_url_path="/cpsc-236-f24",
-                course_term_id=course_terms[0].course_term_id,
-            ),
-            Course(
-                title="Database Management",
-                user_friendly_class_code="CPSC 408",
-                starting_url_path="/cpsc-408-f24",
-                course_term_id=course_terms[0].course_term_id,
-            ),
-            Course(
-                title="Operating Systems",
-                user_friendly_class_code="CPSC 380",
-                starting_url_path="/cpsc-380-s24",
-                course_term_id=course_terms[1].course_term_id,
-            ),
-        ]
-        insert_course_query = '''
-        INSERT INTO course(title, user_friendly_class_code, starting_url_path, course_term_id)
-        VALUES (%s, %s, %s, %s);
-        '''
-        for course in courses:
-            params = (course.title, course.user_friendly_class_code, course.starting_url_path, course.course_term_id)
-            cursor = self.connection.cursor()
-            cursor.execute(insert_course_query, params)
-
-            course.course_id = cursor.lastrowid
-        self.connection.commit()
-        return courses
-
-    def add_single_enrollment(self, enrollment: CourseEnrollment):
-        insert_enrollment_query = '''
-        INSERT INTO enrollment(course_id, role, user_id)
-        VALUES (%s, %s, %s);
-        '''
-        params = (enrollment.course_id, enrollment.role.value, enrollment.user_id)
-        cursor = self.connection.cursor()
-        cursor.execute(insert_enrollment_query, params)
-        self.connection.commit()
 
     def assert_single_course_against_database_query(self, course_select_query, original_course: Course, params = None):
         cursor = self.connection.cursor()
@@ -120,7 +45,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_get_all_course_enrollments_for_user_id(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
 
         course_enrollments = [
             CourseEnrollment(
@@ -168,8 +93,52 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertNotEqual(returned_course_enrollments, None)
         self.assertEqual(len(returned_course_enrollments), 0)
 
+    def test_get_course_terms_with_courses_for_user_id(self):
+        user, _ = self.add_sample_user_to_test_db()
+        (
+            course_terms_to_enroll_user_in,
+            courses_to_enroll_user_in_as_assistant,
+            courses_to_enroll_user_in_as_student,
+            courses_to_not_enroll_user_in
+        ) = self.add_sample_course_term_and_course_enrollment_cluster(user.user_id)
+
+        # Validate the course terms returned and the order
+        course_terms_with_courses = self.course_repo.get_course_terms_with_courses_for_user_id(user.user_id)
+        self.assertIsNotNone(course_terms_with_courses)
+        for course_term_with_courses, original_course_term in zip(course_terms_with_courses, course_terms_to_enroll_user_in):
+            self.assertEqual(course_term_with_courses.title, original_course_term.title)
+            self.assertEqual(course_term_with_courses.course_term_id, original_course_term.course_term_id)
+            self.assertEqual(course_term_with_courses.position_from_top, original_course_term.position_from_top)
+
+            # Verify that each course present on the returned object is supposed to be there
+            for course_to_check in course_term_with_courses.courses:
+                matching_courses = [enrolled_course for enrolled_course in courses_to_enroll_user_in_as_student if enrolled_course.course_id == course_to_check.course_id]
+                if not matching_courses:
+                    matching_courses = [enrolled_course for enrolled_course in courses_to_enroll_user_in_as_assistant if enrolled_course.course_id == course_to_check.course_id]
+
+                self.assertEqual(len(matching_courses), 1)
+                matching_course = matching_courses[0]
+
+                self.assertEqual(matching_course.course_term_id, course_to_check.course_term_id)
+                self.assertEqual(matching_course.starting_url_path, course_to_check.starting_url_path)
+                self.assertEqual(matching_course.title, course_to_check.title)
+                self.assertEqual(matching_course.user_friendly_class_code, course_to_check.user_friendly_class_code)
+
+            # Verify that courses which shouldn't appear shouldn't appear
+            for non_appearing_course in courses_to_not_enroll_user_in:
+                course_ids = [course.course_id for course in course_term_with_courses.courses]
+                self.assertNotIn(non_appearing_course.course_id, course_ids)
+
+    def test_get_course_terms_with_courses_if_no_enrollments(self):
+        user, _ = self.add_sample_user_to_test_db()
+        self.add_sample_course_term_and_course_cluster()
+
+        course_terms = self.course_repo.get_course_terms_with_courses_for_user_id(user.user_id)
+        self.assertIsNotNone(course_terms)
+        self.assertEqual(len(course_terms), 0)
+
     def test_get_course_by_starting_url_if_exists(self):
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
 
         returned_course = self.course_repo.get_course_by_starting_url_if_exists(courses[0].starting_url_path)
         self.assertNotEqual(returned_course, None)
@@ -185,7 +154,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assertEqual(returned_course, None)
 
     def test_get_course_by_id_if_exists(self):
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
 
         returned_course = self.course_repo.get_course_by_id_if_exists(courses[0].course_id)
         self.assertNotEqual(returned_course, None)
@@ -204,7 +173,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         roles = list(Role)
 
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
 
         for role in roles:
             with self.subTest(role=role):
@@ -227,7 +196,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_check_if_user_has_editing_rights_if_not_enrolled(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
 
         result = self.course_repo.check_whether_user_has_editing_rights(user.user_id, courses[0].course_id)
         self.assertEqual(result, False)
@@ -255,7 +224,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assert_single_course_against_database_query(course_select_query, new_course)
 
     def test_add_course_with_id(self):
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         duplicate_course_id = courses[0].course_id
 
         course_with_id = Course(
@@ -284,7 +253,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
 
     def test_add_course_with_duplicate_starting_url(self):
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         duplicate_starting_url = courses[0].starting_url_path
 
         course_with_duplicate_url = Course(
@@ -312,14 +281,14 @@ class TestCourseRepo(TestWithDatabaseContainer):
         )
 
     def test_update_course_metadata_by_id(self):
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
         modified_course = courses[0]
 
         # Modify every field
-        # TODO validate course term change, which would require refactor of sample data method
         modified_course.starting_url_path = "/cpsc-350-f24"
         modified_course.title = "Data Structures and Algorithms"
         modified_course.user_friendly_class_code = "CPSC 350"
+        modified_course.course_term_id = course_terms[1].course_term_id
 
         self.course_repo.update_course_metadata_by_id(modified_course)
 
@@ -348,7 +317,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
             self.course_repo.update_course_metadata_by_id(new_course)
 
     def test_update_course_metadata_with_duplicate_starting_url(self):
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         original_course = copy.deepcopy(courses[0])
         modified_course = courses[0]
 
@@ -375,7 +344,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
         self.assert_single_course_against_database_query(course_select_query, original_course, params)
 
     def test_delete_course_by_id_if_exists_and_no_dependencies(self):
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         course_to_delete = courses[0]
 
         self.course_repo.delete_course_by_id(course_to_delete.course_id)
@@ -400,7 +369,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_delete_course_by_id_if_exists_and_dependencies(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         course_to_delete = courses[0]
 
         # Add dependencies in the form of course enrollments
@@ -429,7 +398,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_add_course_enrollment(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
 
         course_to_enroll = courses[0]
 
@@ -444,7 +413,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_add_duplicate_course_enrollment(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
 
         course_to_enroll = courses[0]
         enrollment = CourseEnrollment(
@@ -469,7 +438,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_update_role_by_course_and_user_id(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         course_to_enroll = courses[0]
 
         enrollment = CourseEnrollment(
@@ -489,7 +458,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_update_role_for_nonexistent_course_enrollment(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         course_to_enroll = courses[0]
 
         enrollment = CourseEnrollment(
@@ -503,7 +472,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
 
     def test_delete_course_enrollment_by_id(self):
         user, _ = self.add_sample_user_to_test_db()
-        courses = self.add_sample_course_term_and_course_enrollment_cluster()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
         course_to_enroll = courses[0]
 
         enrollment = CourseEnrollment(

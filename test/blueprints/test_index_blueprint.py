@@ -1,9 +1,52 @@
 from test.test_flask_app import TestFlaskApp
 
 class TestIndexBlueprint(TestFlaskApp):
-    def test_all_classes(self):
+    def test_your_classes(self):
+        user, sample_password = self.add_sample_user_to_test_db()
+        (
+            course_terms_to_enroll_user_in,
+            courses_to_enroll_user_in_as_assistant,
+            courses_to_enroll_user_in_as_student,
+            courses_to_not_enroll_user_in
+        ) = self.add_sample_course_term_and_course_enrollment_cluster(user.user_id)
+
+        # Set user session to simulate login
+        with self.test_client.session_transaction() as session:
+            session["user_id"] = user.user_id
+
         response = self.test_client.get("/")
         self.assertEqual(response.status_code, 200)
+
+        for course_term_with_courses in course_terms_to_enroll_user_in:
+            self.assertIn(course_term_with_courses.title.encode(), response.data)
+
+        for course_to_check in courses_to_enroll_user_in_as_student:
+            self.assertIn(course_to_check.title.encode(), response.data)
+
+        for course_to_check in courses_to_not_enroll_user_in:
+            self.assertNotIn(course_to_check.title.encode(), response.data)
+
+    def test_your_classes_if_no_classes(self):
+        user, sample_password = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+
+        with self.test_client.session_transaction() as session:
+            session["user_id"] = user.user_id
+
+        response = self.test_client.get("/")
+        self.assertEqual(response.status_code, 200)
+
+        # Verify that a message was displayed to the user
+        self.assertIn(b"No courses to display", response.data)
+
+        for course in courses:
+            self.assertNotIn(course.title.encode(), response.data)
+        for course_term in course_terms:
+            self.assertNotIn(course_term.title.encode(), response.data)
+
+    def test_your_classes_if_not_signed_in(self):
+        response = self.test_client.get("/")
+        self.assertEqual(response.status_code, 302)
 
     def test_sign_in_page(self):
         response = self.test_client.get("/sign-in")
