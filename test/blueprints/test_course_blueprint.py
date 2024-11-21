@@ -56,4 +56,5 @@ class TestCourseBlueprint(TestFlaskApp):
         pass
 
     def test_course_home_page_content_if_not_exists(self):
-        pass
+        response = self.test_client.get("/cpsc-236-f24/")
+        self.assertEqual(response.status_code, 404)
