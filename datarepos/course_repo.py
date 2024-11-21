@@ -128,25 +128,8 @@ class CourseRepo(Repo):
         return None
 
     def check_whether_user_has_editing_rights(self, user_id: int, course_id: int) -> bool:
-        # TODO change this to get the enrollment?
-        get_enrollment_query = '''
-        SELECT enrollment.role
-        FROM enrollment
-        WHERE enrollment.user_id = %s 
-            AND enrollment.course_id = %s;
-        '''
-        params = (user_id, course_id)
-
-        cursor = self.connection.cursor()
-        cursor.execute(get_enrollment_query, params)
-        result = cursor.fetchone()
-        if not result:
-            return False
-
-        role_number, = result
-        role = Role(role_number)
-
-        if role == Role.STUDENT:
+        role = self.get_user_role_in_class_if_exists(user_id, course_id)
+        if not role or role == Role.STUDENT:
             return False
         return True
 
@@ -239,9 +222,25 @@ class CourseRepo(Repo):
 
         self.connection.commit()
 
-    def get_user_role_in_class_if_exists(self, user_id: str, class_id: str) -> Optional[Role]:
-        # TODO implement after class data model is created
-        pass
+    def get_user_role_in_class_if_exists(self, user_id: str, course_id: str) -> Optional[Role]:
+        get_enrollment_query = '''
+        SELECT enrollment.role
+        FROM enrollment
+        WHERE enrollment.user_id = %s 
+            AND enrollment.course_id = %s;
+        '''
+        params = (user_id, course_id)
+
+        cursor = self.connection.cursor()
+        cursor.execute(get_enrollment_query, params)
+        result = cursor.fetchone()
+        if not result:
+            return None
+
+        role_number, = result
+        role = Role(role_number)
+
+        return role
 
     def add_course_enrollment(self, course_enrollment: CourseEnrollment):
         add_course_enrollment_query = '''
