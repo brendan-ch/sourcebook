@@ -11,13 +11,19 @@ def your_classes_page():
 
     user_id = session["user_id"]
 
+    user_repository = get_user_repository()
+    user = user_repository.get_user_from_id_if_exists(user_id)
+    if not user:
+        return redirect("/sign-out")
+
     course_repository = get_course_repository()
     course_terms_with_courses = course_repository.get_course_terms_with_courses_for_user_id(user_id)
 
     return render_template(
         "your_classes.html",
         course_terms_with_courses=course_terms_with_courses,
-)
+        current_user=user,
+    )
 
 @index_bp.route("/sign-in", methods=["GET", "POST"])
 def sign_in_page():
