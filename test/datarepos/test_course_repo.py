@@ -396,11 +396,35 @@ class TestCourseRepo(TestWithDatabaseContainer):
         params = (course_to_delete.course_id,)
         self.assert_single_course_against_database_query(course_select_query, course_to_delete, params)
 
-    def test_get_user_role_in_class_if_exists(self):
-        pass
+    def test_get_user_role_in_class_if_different_roles_exist(self):
+        roles = list(Role)
+
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(role=role, user_id=user.user_id, course_id=courses[0].course_id)
+                self.add_single_enrollment(enrollment)
+
+                result = self.course_repo.get_user_role_in_class_if_exists(user.user_id, courses[0].course_id)
+                self.assertEqual(result, role)
+
+            # Regardless of whether test fails or succeeds,
+            # clear enrollments
+            delete_query = '''
+            DELETE FROM enrollment;
+            '''
+            cursor = self.connection.cursor()
+            cursor.execute(delete_query)
+            self.connection.commit()
 
     def test_get_user_role_in_class_if_not_exists(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+
+        result = self.course_repo.get_user_role_in_class_if_exists(user.user_id, courses[0].course_id)
+        self.assertIsNone(result)
 
     def test_add_course_enrollment(self):
         user, _ = self.add_sample_user_to_test_db()
