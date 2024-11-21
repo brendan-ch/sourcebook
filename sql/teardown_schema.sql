@@ -3,7 +3,7 @@ DROP TABLE attendance_session;
 DROP TABLE enrollment;
 DROP TABLE page_file_bridge;
 DROP TABLE page;
-DROP TABLE course;
 DROP TABLE file;
+DROP TABLE course;
 DROP TABLE course_term;
 DROP TABLE user;

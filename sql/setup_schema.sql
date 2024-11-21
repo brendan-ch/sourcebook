@@ -57,9 +57,13 @@ CREATE TABLE page (
 
 CREATE TABLE file (
     file_id INT PRIMARY KEY AUTO_INCREMENT,
+    file_uuid CHAR(36) UNIQUE NOT NULL,
     filepath VARCHAR(128) UNIQUE NOT NULL,
     uploaded_by_user_id INT,
 
+    course_id INT NOT NULL,
+
+    FOREIGN KEY (course_id) REFERENCES course(course_id),
     FOREIGN KEY (uploaded_by_user_id) REFERENCES user(user_id)
 );
 
@@ -107,3 +111,16 @@ BEGIN
     SET NEW.user_uuid = new_uuid;
 END //
 DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER before_insert_trigger_on_file
+    BEFORE INSERT ON file
+    FOR EACH ROW
+BEGIN
+    DECLARE new_uuid CHAR(36);
+    REPEAT
+        SET new_uuid = UUID();
+    UNTIL NOT EXISTS (SELECT 1 FROM file WHERE file.file_uuid = new_uuid)
+        END REPEAT;
+    SET NEW.file_uuid = new_uuid;
+END //
