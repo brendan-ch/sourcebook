@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session
+from flask import Blueprint, render_template, session, abort
 
 from flask_repository_getters import get_course_repository, get_user_repository
 
@@ -15,8 +15,7 @@ def course_home_page(course_url: str):
 
     course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
     if not course:
-        # TODO render 404 page template
-        return "Course not found", 404
+        return render_template("404.html"), 404
 
     role = None
     if user:
@@ -26,8 +25,10 @@ def course_home_page(course_url: str):
     # set to public or private
 
     if not role:
-        # TODO render 401 page template
-        return "Not enrolled in course", 401
+        return render_template(
+            "401.html",
+            custom_error_message="You need to be enrolled in this course to see it."
+        ), 401
 
     return render_template(
         "course_static_page.html",
