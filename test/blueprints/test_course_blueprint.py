@@ -1,4 +1,4 @@
-from flask import Response
+from flask import Response, session
 
 from models.course import Course
 from models.course_enrollment import CourseEnrollment, Role
@@ -35,6 +35,10 @@ class TestCourseBlueprint(TestFlaskApp):
             course_id=course.course_id,
         )
         self.add_single_enrollment(enrollment)
+
+        # Set user session to simulate login
+        with self.test_client.session_transaction() as session:
+            session["user_id"] = user.user_id
 
         response = self.test_client.get(course.starting_url_path + "/")
         self.assertEqual(response.status_code, 200)
