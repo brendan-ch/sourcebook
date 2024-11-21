@@ -2,11 +2,12 @@ from flask import Response
 
 from models.course import Course
 from models.course_enrollment import CourseEnrollment, Role
+from models.user import User
 from test.test_flask_app import TestFlaskApp
 
 
 class TestCourseBlueprint(TestFlaskApp):
-    def assert_course_layout_content(self, response: Response, course: Course):
+    def assert_course_layout_content(self, response: Response, course: Course, user: User):
         # Check reused layout content for the course
         # Includes:
         # - all classes
@@ -15,7 +16,12 @@ class TestCourseBlueprint(TestFlaskApp):
         # - pages that should be visible in navigation (future)
         # - pages that should be collapsed (future)
 
-        # TODO assert layout content (sidebar content)
+        # TODO use BeautifulSoup for testing
+
+        self.assertIn(b"Sign out", response.data)
+        self.assertIn(b"View all classes", response.data)
+        self.assertIn(user.email.encode(), response.data)
+        self.assertIn(user.full_name.encode(), response.data)
         pass
 
     def test_course_home_page_content_if_enrolled(self):
@@ -32,7 +38,7 @@ class TestCourseBlueprint(TestFlaskApp):
 
         response = self.test_client.get(course.starting_url_path + "/")
         self.assertEqual(response.status_code, 200)
-        self.assert_course_layout_content(response, course)
+        self.assert_course_layout_content(response, course, user)
 
         # TODO assert home page content
 
