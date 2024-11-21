@@ -43,7 +43,7 @@ CREATE TABLE enrollment (
 
 CREATE TABLE page (
     page_id INT PRIMARY KEY AUTO_INCREMENT,
-    page_type INT NOT NULL,
+    page_visibility_setting INT NOT NULL,
     url_path VARCHAR(128) NOT NULL UNIQUE,
     page_content MEDIUMTEXT NOT NULL,
     page_title VARCHAR(256),
