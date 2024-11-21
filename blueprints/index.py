@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, session, redirect, flash
 
-from flask_repository_getters import get_user_repository
+from flask_repository_getters import get_user_repository, get_course_repository
 
 index_bp = Blueprint("index", __name__)
 
@@ -8,7 +8,16 @@ index_bp = Blueprint("index", __name__)
 def your_classes_page():
     if "user_id" not in session:
         return redirect("/sign-in")
-    return render_template("your_classes.html")
+
+    user_id = session["user_id"]
+
+    course_repository = get_course_repository()
+    course_terms_with_courses = course_repository.get_course_terms_with_courses_for_user_id(user_id)
+
+    return render_template(
+        "your_classes.html",
+        course_terms_with_courses=course_terms_with_courses,
+)
 
 @index_bp.route("/sign-in", methods=["GET", "POST"])
 def sign_in_page():
