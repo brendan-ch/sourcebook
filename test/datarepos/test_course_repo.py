@@ -281,14 +281,14 @@ class TestCourseRepo(TestWithDatabaseContainer):
         )
 
     def test_update_course_metadata_by_id(self):
-        courses, _ = self.add_sample_course_term_and_course_cluster()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
         modified_course = courses[0]
 
         # Modify every field
-        # TODO validate course term change, which would require refactor of sample data method
         modified_course.starting_url_path = "/cpsc-350-f24"
         modified_course.title = "Data Structures and Algorithms"
         modified_course.user_friendly_class_code = "CPSC 350"
+        modified_course.course_term_id = course_terms[1].course_term_id
 
         self.course_repo.update_course_metadata_by_id(modified_course)
 
