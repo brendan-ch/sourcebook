@@ -468,7 +468,8 @@ Embark on your journey into the exciting world of game development today!
         self.assertEqual(new_page, page_from_repo)
 
     def test_get_page_by_url_and_course_id_if_nonexistent(self):
-        pass
+        page_from_repo = self.content_repo.get_page_by_url_and_course_id_if_exists(1, "/")
+        self.assertIsNone(page_from_repo)
 
     def test_get_listed_pages_for_course_id(self):
         pass
