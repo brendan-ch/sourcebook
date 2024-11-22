@@ -1,5 +1,7 @@
 import unittest
 
+from sqlalchemy.dialects.mssql.information_schema import constraints
+
 from custom_exceptions import AlreadyExistsException
 from datarepos.content_repo import ContentRepo
 from models.course_enrollment import CourseEnrollment, Role
@@ -188,7 +190,72 @@ Embark on your journey into the exciting world of game development today!
             self.assertEqual(constructed_page, matching_page[0])
 
     def test_update_page_by_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+
+        page_to_update = Page(
+            created_by_user_id=user.user_id,
+            page_title="Home",
+            page_content=self.sample_page_content,
+            page_visibility_setting=VisibilitySetting.LISTED,
+            url_path_after_course_path="/",
+            course_id=courses[0].course_id
+        )
+
+        insert_query = '''
+        INSERT INTO page (
+            page_visibility_setting,
+            page_content,
+            page_title,
+            url_path_after_course_path,
+            course_id,
+            created_by_user_id
+        ) 
+        VALUES (%s, %s, %s, %s, %s, %s);
+        '''
+        params = (
+            page_to_update.page_visibility_setting.value,
+            page_to_update.page_content,
+            page_to_update.page_title,
+            page_to_update.url_path_after_course_path,
+            page_to_update.course_id,
+            page_to_update.created_by_user_id
+        )
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(insert_query, params)
+        self.connection.commit()
+        page_to_update.page_id = cursor.lastrowid
+
+        page_to_update.course_id = courses[1].course_id
+        page_to_update.page_content = "New page content"
+        page_to_update.page_title = "New title"
+        page_to_update.page_visibility_setting = VisibilitySetting.HIDDEN
+        page_to_update.url_path_after_course_path = "/new-title"
+
+        self.content_repo.update_page_by_id(page_to_update)
+
+        get_page_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.page_id = %s
+        '''
+
+        params = (page_to_update.page_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+        self.assertIsNotNone(result)
+
+        constructed_page = Page(**result)
+        self.assertEqual(constructed_page, page_to_update)
 
     def test_update_nonexistent_page(self):
         pass
