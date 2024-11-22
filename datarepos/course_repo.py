@@ -151,19 +151,8 @@ class CourseRepo(Repo):
                   course.starting_url_path,
                   course.user_friendly_class_code)
 
-        cursor = self.connection.cursor()
-
-        try:
-            cursor.execute(add_course_query, params)
-            self.connection.commit()
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
-                raise AlreadyExistsException
-            else:
-                raise e
-
-        id = cursor.lastrowid
-        return id
+        course_id = self.insert_single_entry_into_db_and_return_id(add_course_query, params)
+        return course_id
 
     def update_course_metadata_by_id(self, course: Course):
         update_query = '''
@@ -183,22 +172,7 @@ class CourseRepo(Repo):
             course.course_id
         )
 
-        cursor = self.connection.cursor()
-
-        try:
-            cursor.execute(update_query, params)
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
-                raise AlreadyExistsException
-            else:
-                raise e
-
-        row_count = cursor.rowcount
-        if row_count < 1:
-            raise NotFoundException
-
-        self.connection.commit()
-
+        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def delete_course_by_id(self, course_id: int):
         delete_course_query = '''
@@ -207,20 +181,7 @@ class CourseRepo(Repo):
         '''
         params = (course_id,)
 
-        cursor = self.connection.cursor()
-
-        try:
-            cursor.execute(delete_course_query, params)
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_FOREIGN_KEY_CONSTRAINT_EXCEPTION_CODE:
-                raise DependencyException
-            raise e
-
-        row_count = cursor.rowcount
-        if row_count < 1:
-            raise NotFoundException
-
-        self.connection.commit()
+        self.execute_dml_query_and_check_rowcount_greater_than_0(delete_course_query, params)
 
     def get_user_role_in_class_if_exists(self, user_id: str, course_id: str) -> Optional[Role]:
         get_enrollment_query = '''
@@ -249,14 +210,7 @@ class CourseRepo(Repo):
         '''
         params = (course_enrollment.course_id, course_enrollment.user_id, course_enrollment.role.value)
 
-        cursor = self.connection.cursor()
-        try:
-            cursor.execute(add_course_enrollment_query, params)
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
-                raise AlreadyExistsException
-            else:
-                raise e
+        self.insert_single_entry_into_db_and_return_id(add_course_enrollment_query, params)
 
     def update_role_by_course_and_user_id(self, course_enrollment: CourseEnrollment):
         update_course_enrollment_query = '''
