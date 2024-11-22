@@ -1,5 +1,6 @@
 import unittest
 
+from custom_exceptions import AlreadyExistsException
 from datarepos.content_repo import ContentRepo
 from models.course_enrollment import CourseEnrollment, Role
 from models.page import Page, VisibilitySetting
@@ -79,7 +80,43 @@ Embark on your journey into the exciting world of game development today!
         self.assertEqual(object_constructed_from_result, new_page)
 
     def test_add_new_page_with_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        new_page = Page(
+            page_id=1,
+            created_by_user_id=user.user_id,
+            page_title="Home",
+            page_content=self.sample_page_content,
+            page_visibility_setting=VisibilitySetting.LISTED,
+            url_path_after_course_path="/",
+            course_id=course.course_id
+        )
+
+        with self.assertRaises(AlreadyExistsException):
+            self.content_repo.add_new_page_and_get_id(new_page)
+
+        # Validate the database to ensure no changes were made
+        # TODO consider moving common queries to class level
+        get_page_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.page_id = %s
+        '''
+
+        params = (new_page.page_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+        self.assertIsNone(result)
 
     def test_add_new_page_with_duplicate_start_url_and_course_id(self):
         pass
