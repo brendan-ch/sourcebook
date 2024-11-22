@@ -21,3 +21,7 @@ class Page:
     created_by_user_id: Optional[int] = None
 
     page_id: Optional[int] = None
+
+    def __post_init__(self):
+        if isinstance(self.page_visibility_setting, int):
+            self.page_visibility_setting = VisibilitySetting(self.page_visibility_setting)
