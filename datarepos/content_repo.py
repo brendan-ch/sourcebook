@@ -1,7 +1,5 @@
 from typing import Optional
 
-from mysql.connector import IntegrityError
-
 from custom_exceptions import AlreadyExistsException
 from datarepos.repo import Repo
 from models.page import Page
@@ -32,20 +30,8 @@ class ContentRepo(Repo):
             page.created_by_user_id
         )
 
-        cursor = self.connection.cursor()
-
-        try:
-            cursor.execute(insert_page_query, params)
-            self.connection.commit()
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
-                raise AlreadyExistsException
-            else:
-                raise e
-
-        id = cursor.lastrowid
-        return id
-
+        page_id = self.insert_single_entry_into_db_and_return_id(insert_page_query, params)
+        return page_id
 
     def update_page_by_id(self, page: Page):
         pass

@@ -151,19 +151,8 @@ class CourseRepo(Repo):
                   course.starting_url_path,
                   course.user_friendly_class_code)
 
-        cursor = self.connection.cursor()
-
-        try:
-            cursor.execute(add_course_query, params)
-            self.connection.commit()
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
-                raise AlreadyExistsException
-            else:
-                raise e
-
-        id = cursor.lastrowid
-        return id
+        course_id = self.insert_single_entry_into_db_and_return_id(add_course_query, params)
+        return course_id
 
     def update_course_metadata_by_id(self, course: Course):
         update_query = '''

@@ -1,7 +1,8 @@
 import mysql.connector
+from mysql.connector import IntegrityError
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
-
+from custom_exceptions import AlreadyExistsException
 
 
 class Repo:
@@ -25,3 +26,16 @@ class Repo:
     def close_connection(self):
         self.connection.close()
         self.connection_is_open = False
+
+    def insert_single_entry_into_db_and_return_id(self, insert_query, params):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(insert_query, params)
+            self.connection.commit()
+        except IntegrityError as e:
+            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+                raise AlreadyExistsException
+            else:
+                raise e
+        id = cursor.lastrowid
+        return id
