@@ -18,6 +18,6 @@ class Page:
 
     page_visibility_setting: VisibilitySetting
 
-    created_by_user_id: Optional[int]
+    created_by_user_id: Optional[int] = None
 
-    page_id: Optional[int]
+    page_id: Optional[int] = None
