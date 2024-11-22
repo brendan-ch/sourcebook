@@ -428,7 +428,22 @@ Embark on your journey into the exciting world of game development today!
             self.assert_single_page_does_not_exist_by_id(page)
 
     def test_get_page_by_id_if_exists(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        new_page = Page(
+            created_by_user_id=user.user_id,
+            page_title="Home",
+            page_content=self.sample_page_content,
+            page_visibility_setting=VisibilitySetting.LISTED,
+            url_path_after_course_path="/",
+            course_id=course.course_id
+        )
+        new_page.page_id = self.add_single_page_and_get_id(new_page)
+
+        page_from_repo = self.content_repo.get_page_by_id_if_exists(new_page.page_id)
+        self.assertEqual(new_page, page_from_repo)
 
     def test_get_page_by_id_if_nonexistent(self):
         pass
