@@ -358,7 +358,24 @@ Embark on your journey into the exciting world of game development today!
         self.assert_single_page_against_matching_id_page_in_db(new_pages[1])
 
     def test_delete_page_by_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        page_to_delete = Page(
+            created_by_user_id=user.user_id,
+            page_title="Home",
+            page_content=self.sample_page_content,
+            page_visibility_setting=VisibilitySetting.LISTED,
+            url_path_after_course_path="/",
+            course_id=course.course_id,
+        )
+
+        page_to_delete.page_id = self.add_single_page_and_get_id(page_to_delete)
+
+        self.content_repo.delete_page_by_id(page_to_delete.page_id)
+
+        self.assert_single_page_does_not_exist_by_id(page_to_delete)
 
     def test_delete_nonexistent_page(self):
         pass
