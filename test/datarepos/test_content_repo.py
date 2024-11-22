@@ -506,4 +506,6 @@ Embark on your journey into the exciting world of game development today!
             self.assertEqual(page_from_repo, matching_page[0])
 
     def test_get_listed_pages_for_nonexistent_course_id(self):
-        pass
+        pages_from_repo = self.content_repo.get_listed_pages_for_course_id(1)
+        self.assertIsNotNone(pages_from_repo)
+        self.assertEqual(len(pages_from_repo), 0)
