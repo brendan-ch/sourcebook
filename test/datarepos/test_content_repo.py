@@ -427,9 +427,6 @@ Embark on your journey into the exciting world of game development today!
         for page in pages_to_delete:
             self.assert_single_page_does_not_exist_by_id(page)
 
-    def test_delete_pages_with_nonexistent_course_id(self):
-        pass
-
     def test_get_page_by_id_if_exists(self):
         pass
 
