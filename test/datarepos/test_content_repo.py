@@ -138,7 +138,54 @@ Embark on your journey into the exciting world of game development today!
             self.content_repo.add_new_page_and_get_id(new_page)
 
     def test_add_new_page_with_duplicate_start_url_but_diff_course_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+
+        new_pages = [
+            Page(
+                created_by_user_id=user.user_id,
+                page_title="Page 1",
+                page_content=self.sample_page_content,
+                page_visibility_setting=VisibilitySetting.LISTED,
+                url_path_after_course_path="/",
+                course_id=courses[0].course_id
+            ),
+            Page(
+                created_by_user_id=user.user_id,
+                page_title="Page 2",
+                page_content=self.sample_page_content,
+                page_visibility_setting=VisibilitySetting.HIDDEN,
+                url_path_after_course_path="/",
+                course_id=courses[1].course_id
+            )
+        ]
+
+        new_pages[0].page_id = self.content_repo.add_new_page_and_get_id(new_pages[0])
+        new_pages[1].page_id = self.content_repo.add_new_page_and_get_id(new_pages[1])
+
+        # Validate both pages exist
+        select_pages_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.url_path_after_course_path = %s
+        '''
+        params = (new_pages[0].url_path_after_course_path,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(select_pages_query, params)
+        results = cursor.fetchall()
+
+        self.assertEqual(len(results), 2)
+        pages_constructed_from_results = [Page(**result) for result in results]
+        for constructed_page in pages_constructed_from_results:
+            matching_page = [page for page in new_pages if page.page_id == constructed_page.page_id]
+            self.assertEqual(constructed_page, matching_page[0])
 
     def test_update_page_by_id(self):
         pass
