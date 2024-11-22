@@ -2,7 +2,7 @@ import mysql.connector
 from mysql.connector import IntegrityError
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
-from custom_exceptions import AlreadyExistsException
+from custom_exceptions import AlreadyExistsException, NotFoundException
 
 
 class Repo:
@@ -39,3 +39,18 @@ class Repo:
                 raise e
         id = cursor.lastrowid
         return id
+
+    def execute_dml_query_and_check_rowcount_greater_than_0(self, params, update_query):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(update_query, params)
+        except IntegrityError as e:
+            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
+                raise AlreadyExistsException
+            else:
+                raise e
+        row_count = cursor.rowcount
+        if row_count < 1:
+            raise NotFoundException
+
+        self.connection.commit()

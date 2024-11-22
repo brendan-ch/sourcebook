@@ -172,22 +172,7 @@ class CourseRepo(Repo):
             course.course_id
         )
 
-        cursor = self.connection.cursor()
-
-        try:
-            cursor.execute(update_query, params)
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
-                raise AlreadyExistsException
-            else:
-                raise e
-
-        row_count = cursor.rowcount
-        if row_count < 1:
-            raise NotFoundException
-
-        self.connection.commit()
-
+        self.execute_dml_query_and_check_rowcount_greater_than_0(params, update_query)
 
     def delete_course_by_id(self, course_id: int):
         delete_course_query = '''
