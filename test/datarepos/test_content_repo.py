@@ -472,7 +472,38 @@ Embark on your journey into the exciting world of game development today!
         self.assertIsNone(page_from_repo)
 
     def test_get_listed_pages_for_course_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        new_pages = [
+            Page(
+                created_by_user_id=user.user_id,
+                page_title="Page 1",
+                page_content=self.sample_page_content,
+                page_visibility_setting=VisibilitySetting.LISTED,
+                url_path_after_course_path="/page-1",
+                course_id=courses[0].course_id
+            ),
+            Page(
+                created_by_user_id=user.user_id,
+                page_title="Page 2",
+                page_content=self.sample_page_content,
+                page_visibility_setting=VisibilitySetting.HIDDEN,
+                url_path_after_course_path="/page-2",
+                course_id=courses[0].course_id
+            )
+        ]
+        for page in new_pages:
+            page.page_id = self.add_single_page_and_get_id(page)
+
+        pages_from_repo = self.content_repo.get_listed_pages_for_course_id(course.course_id)
+        self.assertIsNotNone(pages_from_repo)
+        self.assertEqual(len(new_pages), len(pages_from_repo))
+
+        for page_from_repo in pages_from_repo:
+            matching_page = [page for page in new_pages if page.page_id == page_from_repo.page_id]
+            self.assertEqual(page_from_repo, matching_page[0])
 
     def test_get_listed_pages_for_nonexistent_course_id(self):
         pass
