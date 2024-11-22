@@ -42,7 +42,6 @@ Embark on your journey into the exciting world of game development today!
 - [Contact Me](/contact-me)
 
         '''
-
         new_page = Page(
             created_by_user_id=user.user_id,
             page_title="Home",
@@ -52,7 +51,30 @@ Embark on your journey into the exciting world of game development today!
             course_id=course.course_id
         )
 
+        new_page.page_id = self.content_repo.add_new_page_and_get_id(new_page)
+        self.assertIsNotNone(new_page.page_id)
 
+        # Validate some data in the database
+        get_page_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.page_id = %s
+        '''
+        params = (new_page.page_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+        object_constructed_from_result = Page(**result)
+
+        # With Python dataclass, the __eq__ method compares each attribute
+        self.assertEqual(object_constructed_from_result, new_page)
 
     def test_add_new_page_with_id(self):
         pass
