@@ -287,7 +287,42 @@ Embark on your journey into the exciting world of game development today!
         self.assert_single_page_does_not_exist_by_id(nonexistent_page)
 
     def test_update_page_with_duplicate_start_url_and_course_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+
+        new_pages = [
+            Page(
+                created_by_user_id=user.user_id,
+                page_title="Page 1",
+                page_content=self.sample_page_content,
+                page_visibility_setting=VisibilitySetting.LISTED,
+                url_path_after_course_path="/page-1",
+                course_id=courses[0].course_id
+            ),
+            Page(
+                created_by_user_id=user.user_id,
+                page_title="Page 2",
+                page_content=self.sample_page_content,
+                page_visibility_setting=VisibilitySetting.HIDDEN,
+                url_path_after_course_path="/page-2",
+                course_id=courses[0].course_id
+            )
+        ]
+
+        for page in new_pages:
+            page.page_id = self.add_single_page_and_get_id(page)
+
+        # Try to update the second page
+        new_pages[1].url_path_after_course_path = "/page-1"
+
+        with self.assertRaises(AlreadyExistsException):
+            self.content_repo.update_page_by_id(new_pages[1])
+
+        # Validate that neither page has been changed
+        new_pages[1].url_path_after_course_path = "/page-2"
+
+        self.assert_single_page_against_matching_id_page_in_db(new_pages[0])
+        self.assert_single_page_against_matching_id_page_in_db(new_pages[1])
 
     def test_update_page_with_duplicate_start_url_but_diff_course_id(self):
         pass
