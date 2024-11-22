@@ -58,7 +58,13 @@ class ContentRepo(Repo):
         self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def delete_page_by_id(self, page_id: int):
-        pass
+        delete_query = '''
+        DELETE FROM page
+        WHERE page.page_id = %s;
+        '''
+        params = (page_id,)
+
+        self.execute_dml_query_and_check_rowcount_greater_than_0(delete_query, params)
 
     def delete_pages_with_course_id(self, course_id: int):
         pass
