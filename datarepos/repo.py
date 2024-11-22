@@ -2,7 +2,7 @@ import mysql.connector
 from mysql.connector import IntegrityError
 
 from config import DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_SCHEMA_NAME
-from custom_exceptions import AlreadyExistsException, NotFoundException
+from custom_exceptions import AlreadyExistsException, NotFoundException, DependencyException
 
 
 class Repo:
@@ -47,6 +47,8 @@ class Repo:
         except IntegrityError as e:
             if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
                 raise AlreadyExistsException
+            elif e.errno == self.MYSQL_FOREIGN_KEY_CONSTRAINT_EXCEPTION_CODE:
+                raise DependencyException
             else:
                 raise e
         row_count = cursor.rowcount

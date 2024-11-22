@@ -181,20 +181,7 @@ class CourseRepo(Repo):
         '''
         params = (course_id,)
 
-        cursor = self.connection.cursor()
-
-        try:
-            cursor.execute(delete_course_query, params)
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_FOREIGN_KEY_CONSTRAINT_EXCEPTION_CODE:
-                raise DependencyException
-            raise e
-
-        row_count = cursor.rowcount
-        if row_count < 1:
-            raise NotFoundException
-
-        self.connection.commit()
+        self.execute_dml_query_and_check_rowcount_greater_than_0(delete_course_query, params)
 
     def get_user_role_in_class_if_exists(self, user_id: str, course_id: str) -> Optional[Role]:
         get_enrollment_query = '''
