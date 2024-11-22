@@ -4,7 +4,7 @@ from mysql.connector import IntegrityError
 
 from custom_exceptions import AlreadyExistsException
 from datarepos.repo import Repo
-from models.page import Page
+from models.page import Page, VisibilitySetting
 
 
 class ContentRepo(Repo):
@@ -132,4 +132,22 @@ class ContentRepo(Repo):
         return Page(**result)
 
     def get_listed_pages_for_course_id(self, course_id: int) -> list[Page]:
-        pass
+        get_pages_query = '''
+        SELECT
+            page.page_title,
+            page.page_content,
+            page.created_by_user_id,
+            page.course_id,
+            page.url_path_after_course_path,
+            page.page_visibility_setting,
+            page.page_id
+        FROM page
+        WHERE page.course_id = %s AND page.page_visibility_setting = %s
+        '''
+        params = (course_id, VisibilitySetting.LISTED.value)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_pages_query, params)
+        results = cursor.fetchall()
+
+        return [Page(**result) for result in results]
