@@ -20,7 +20,7 @@ class ContentRepo(Repo):
     def get_page_by_id_if_exists(self, page_id: int) -> Optional[Page]:
         pass
 
-    def get_page_by_url_and_course_id_if_exists(self, url_path: str) -> Optional[Page]:
+    def get_page_by_url_and_course_id_if_exists(self, course_id: int, url_path: str) -> Optional[Page]:
         pass
 
     def get_listed_pages_for_course_id(self, course_id: int) -> list[Page]:
