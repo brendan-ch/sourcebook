@@ -34,7 +34,28 @@ class ContentRepo(Repo):
         return page_id
 
     def update_page_by_id(self, page: Page):
-        pass
+        update_query = '''
+        UPDATE page
+        SET
+            page.page_visibility_setting = %s,
+            page.url_path_after_course_path = %s,
+            page.course_id = %s,
+            page.created_by_user_id = %s,
+            page.page_content = %s,
+            page.page_title = %s
+        WHERE page.page_id = %s;
+        '''
+        params = (
+            page.page_visibility_setting.value,
+            page.url_path_after_course_path,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_id,
+        )
+
+        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def delete_page_by_id(self, page_id: int):
         pass
