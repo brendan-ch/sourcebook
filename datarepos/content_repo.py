@@ -1,5 +1,7 @@
 from typing import Optional
 
+from mysql.connector import IntegrityError
+
 from custom_exceptions import AlreadyExistsException
 from datarepos.repo import Repo
 from models.page import Page
@@ -67,10 +69,43 @@ class ContentRepo(Repo):
         self.execute_dml_query_and_check_rowcount_greater_than_0(delete_query, params)
 
     def delete_pages_with_course_id(self, course_id: int):
-        pass
+        delete_from_course_query = '''
+        DELETE FROM page
+        WHERE page.course_id = %s
+        '''
+        params = (course_id,)
+
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(delete_from_course_query, params)
+        except IntegrityError as e:
+            raise e
+
+        self.connection.commit()
 
     def get_page_by_id_if_exists(self, page_id: int) -> Optional[Page]:
-        pass
+        get_page_query = '''
+        SELECT
+            page.page_title,
+            page.page_content,
+            page.created_by_user_id,
+            page.course_id,
+            page.url_path_after_course_path,
+            page.page_visibility_setting,
+            page.page_id
+        FROM page
+        WHERE page.page_id = %s
+        '''
+        params = (page_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+
+        if not result:
+            return None
+
+        return Page(**result)
 
     def get_page_by_url_and_course_id_if_exists(self, course_id: int, url_path: str) -> Optional[Page]:
         pass
