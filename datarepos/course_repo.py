@@ -210,14 +210,7 @@ class CourseRepo(Repo):
         '''
         params = (course_enrollment.course_id, course_enrollment.user_id, course_enrollment.role.value)
 
-        cursor = self.connection.cursor()
-        try:
-            cursor.execute(add_course_enrollment_query, params)
-        except IntegrityError as e:
-            if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
-                raise AlreadyExistsException
-            else:
-                raise e
+        self.insert_single_entry_into_db_and_return_id(add_course_enrollment_query, params)
 
     def update_role_by_course_and_user_id(self, course_enrollment: CourseEnrollment):
         update_course_enrollment_query = '''
