@@ -323,6 +323,14 @@ Embark on your journey into the exciting world of game development today!
         for page in pages_to_delete:
             self.assert_single_page_does_not_exist_by_id(page)
 
+    def test_delete_pages_with_course_id_if_no_pages(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        # Test that no exception is thrown
+        self.content_repo.delete_pages_with_course_id(course.course_id)
+
     def test_get_page_by_id_if_exists(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, _ = self.add_sample_course_term_and_course_cluster()
