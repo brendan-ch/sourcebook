@@ -119,7 +119,23 @@ Embark on your journey into the exciting world of game development today!
         self.assertIsNone(result)
 
     def test_add_new_page_with_duplicate_start_url_and_course_id(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        new_page = Page(
+            created_by_user_id=user.user_id,
+            page_title="Home",
+            page_content=self.sample_page_content,
+            page_visibility_setting=VisibilitySetting.LISTED,
+            url_path_after_course_path="/",
+            course_id=course.course_id
+        )
+
+        self.content_repo.add_new_page_and_get_id(new_page)
+
+        with self.assertRaises(AlreadyExistsException):
+            self.content_repo.add_new_page_and_get_id(new_page)
 
     def test_add_new_page_with_duplicate_start_url_but_diff_course_id(self):
         pass
