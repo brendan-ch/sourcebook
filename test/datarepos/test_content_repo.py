@@ -2,7 +2,7 @@ import unittest
 
 from sqlalchemy.dialects.mssql.information_schema import constraints
 
-from custom_exceptions import AlreadyExistsException
+from custom_exceptions import AlreadyExistsException, NotFoundException
 from datarepos.content_repo import ContentRepo
 from models.course_enrollment import CourseEnrollment, Role
 from models.page import Page, VisibilitySetting
@@ -59,6 +59,51 @@ Embark on your journey into the exciting world of game development today!
         constructed_page = Page(**result)
         self.assertEqual(constructed_page, page_to_update)
 
+    def assert_single_page_does_not_exist_by_id(self, nonexistent_page):
+        get_page_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.page_id = %s
+        '''
+        params = (nonexistent_page.page_id,)
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+        self.assertIsNone(result)
+
+    def add_single_page_and_get_id(self, page: Page) -> int:
+        insert_page_query = '''
+        INSERT INTO page (
+            page_visibility_setting,
+            page_content,
+            page_title,
+            url_path_after_course_path,
+            course_id,
+            created_by_user_id
+        ) 
+        VALUES (%s, %s, %s, %s, %s, %s);
+        '''
+        params = (
+            page.page_visibility_setting.value,
+            page.page_content,
+            page.page_title,
+            page.url_path_after_course_path,
+            page.course_id,
+            page.created_by_user_id
+        )
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(insert_page_query, params)
+        self.connection.commit()
+
+        return cursor.lastrowid
+
     def test_add_new_page_and_get_id(self):
         # For a course to exist it must be linked to a course,
         # and it *may* be linked to a user
@@ -100,24 +145,8 @@ Embark on your journey into the exciting world of game development today!
             self.content_repo.add_new_page_and_get_id(new_page)
 
         # Validate the database to ensure no changes were made
-        get_page_query = '''
-        SELECT page.page_id,
-            page.course_id,
-            page.created_by_user_id,
-            page.page_content,
-            page.page_title,
-            page.page_visibility_setting,
-            page.url_path_after_course_path
-        FROM page
-        WHERE page.page_id = %s
-        '''
+        self.assert_single_page_does_not_exist_by_id(new_page)
 
-        params = (new_page.page_id,)
-
-        cursor = self.connection.cursor(dictionary=True)
-        cursor.execute(get_page_query, params)
-        result = cursor.fetchone()
-        self.assertIsNone(result)
 
     def test_add_new_page_with_duplicate_start_url_and_course_id(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -133,7 +162,7 @@ Embark on your journey into the exciting world of game development today!
             course_id=course.course_id
         )
 
-        self.content_repo.add_new_page_and_get_id(new_page)
+        self.add_single_page_and_get_id(new_page)
 
         with self.assertRaises(AlreadyExistsException):
             self.content_repo.add_new_page_and_get_id(new_page)
@@ -161,7 +190,7 @@ Embark on your journey into the exciting world of game development today!
             )
         ]
 
-        new_pages[0].page_id = self.content_repo.add_new_page_and_get_id(new_pages[0])
+        new_pages[0].page_id = self.add_single_page_and_get_id(new_pages[0])
         new_pages[1].page_id = self.content_repo.add_new_page_and_get_id(new_pages[1])
 
         # Validate both pages exist
@@ -237,7 +266,25 @@ Embark on your journey into the exciting world of game development today!
 
 
     def test_update_nonexistent_page(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        nonexistent_page = Page(
+            created_by_user_id=user.user_id,
+            page_title="Home",
+            page_content=self.sample_page_content,
+            page_visibility_setting=VisibilitySetting.LISTED,
+            url_path_after_course_path="/",
+            course_id=course.course_id,
+            page_id=1
+        )
+
+        with self.assertRaises(NotFoundException):
+            self.content_repo.update_page_by_id(nonexistent_page)
+
+        # Check that nothing's been added to the database
+        self.assert_single_page_does_not_exist_by_id(nonexistent_page)
 
     def test_update_page_with_duplicate_start_url_and_course_id(self):
         pass
