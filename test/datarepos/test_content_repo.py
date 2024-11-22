@@ -369,20 +369,27 @@ Embark on your journey into the exciting world of game development today!
         new_pages = [
             self.return_sample_page(course.course_id, user.user_id),
             self.return_sample_page(course.course_id, user.user_id),
+            self.return_sample_page(course.course_id, user.user_id),
         ]
         new_pages[1].page_title = "Page 2"
         new_pages[1].url_path_after_course_path = "/page-2"
+        new_pages[2].page_title = "Page 3"
+        new_pages[2].url_path_after_course_path = "/page-3"
+        new_pages[2].page_visibility_setting = VisibilitySetting.HIDDEN
 
         for page in new_pages:
             page.page_id = self.add_single_page_and_get_id(page)
 
         pages_from_repo = self.content_repo.get_listed_pages_for_course_id(course.course_id)
         self.assertIsNotNone(pages_from_repo)
-        self.assertEqual(len(new_pages), len(pages_from_repo))
+        self.assertEqual(2, len(pages_from_repo))
 
         for page_from_repo in pages_from_repo:
             matching_page = [page for page in new_pages if page.page_id == page_from_repo.page_id]
             self.assertEqual(page_from_repo, matching_page[0])
+
+        non_matching_pages = [page for page in pages_from_repo if page.page_id == new_pages[2].page_id]
+        self.assertEqual(len(non_matching_pages), 0)
 
     def test_get_listed_pages_for_nonexistent_course_id(self):
         pages_from_repo = self.content_repo.get_listed_pages_for_course_id(1)
