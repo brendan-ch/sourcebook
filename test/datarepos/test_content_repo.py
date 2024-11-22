@@ -1,10 +1,5 @@
-import unittest
-
-from sqlalchemy.dialects.mssql.information_schema import constraints
-
 from custom_exceptions import AlreadyExistsException, NotFoundException
 from datarepos.content_repo import ContentRepo
-from models.course_enrollment import CourseEnrollment, Role
 from models.page import Page, VisibilitySetting
 from test.test_with_database_container import TestWithDatabaseContainer
 
