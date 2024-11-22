@@ -172,7 +172,7 @@ class CourseRepo(Repo):
             course.course_id
         )
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(params, update_query)
+        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def delete_course_by_id(self, course_id: int):
         delete_course_query = '''

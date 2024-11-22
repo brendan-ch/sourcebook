@@ -40,7 +40,7 @@ class Repo:
         id = cursor.lastrowid
         return id
 
-    def execute_dml_query_and_check_rowcount_greater_than_0(self, params, update_query):
+    def execute_dml_query_and_check_rowcount_greater_than_0(self, update_query, params):
         cursor = self.connection.cursor()
         try:
             cursor.execute(update_query, params)
