@@ -40,6 +40,25 @@ Embark on your journey into the exciting world of game development today!
         super().setUp()
         self.content_repo = ContentRepo(self.connection)
 
+    def assert_single_page_against_matching_id_page_in_db(self, page_to_update):
+        get_page_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.page_id = %s
+        '''
+        params = (page_to_update.page_id,)
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+        constructed_page = Page(**result)
+        self.assertEqual(constructed_page, page_to_update)
+
     def test_add_new_page_and_get_id(self):
         # For a course to exist it must be linked to a course,
         # and it *may* be linked to a user
@@ -60,26 +79,7 @@ Embark on your journey into the exciting world of game development today!
         self.assertIsNotNone(new_page.page_id)
 
         # Validate some data in the database
-        get_page_query = '''
-        SELECT page.page_id,
-            page.course_id,
-            page.created_by_user_id,
-            page.page_content,
-            page.page_title,
-            page.page_visibility_setting,
-            page.url_path_after_course_path
-        FROM page
-        WHERE page.page_id = %s
-        '''
-        params = (new_page.page_id,)
-
-        cursor = self.connection.cursor(dictionary=True)
-        cursor.execute(get_page_query, params)
-        result = cursor.fetchone()
-        object_constructed_from_result = Page(**result)
-
-        # With Python dataclass, the __eq__ method compares each attribute
-        self.assertEqual(object_constructed_from_result, new_page)
+        self.assert_single_page_against_matching_id_page_in_db(new_page)
 
     def test_add_new_page_with_id(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -100,7 +100,6 @@ Embark on your journey into the exciting world of game development today!
             self.content_repo.add_new_page_and_get_id(new_page)
 
         # Validate the database to ensure no changes were made
-        # TODO consider moving common queries to class level
         get_page_query = '''
         SELECT page.page_id,
             page.course_id,
@@ -234,39 +233,16 @@ Embark on your journey into the exciting world of game development today!
         page_to_update.url_path_after_course_path = "/new-title"
 
         self.content_repo.update_page_by_id(page_to_update)
+        self.assert_single_page_against_matching_id_page_in_db(page_to_update)
 
-        get_page_query = '''
-        SELECT page.page_id,
-            page.course_id,
-            page.created_by_user_id,
-            page.page_content,
-            page.page_title,
-            page.page_visibility_setting,
-            page.url_path_after_course_path
-        FROM page
-        WHERE page.page_id = %s
-        '''
-
-        params = (page_to_update.page_id,)
-
-        cursor = self.connection.cursor(dictionary=True)
-        cursor.execute(get_page_query, params)
-        result = cursor.fetchone()
-        self.assertIsNotNone(result)
-
-        constructed_page = Page(**result)
-        self.assertEqual(constructed_page, page_to_update)
 
     def test_update_nonexistent_page(self):
         pass
 
-    def test_update_new_page_with_id(self):
+    def test_update_page_with_duplicate_start_url_and_course_id(self):
         pass
 
-    def test_update_new_page_with_duplicate_start_url_and_course_id(self):
-        pass
-
-    def test_update_new_page_with_duplicate_start_url_but_diff_course_id(self):
+    def test_update_page_with_duplicate_start_url_but_diff_course_id(self):
         pass
 
     def test_delete_page_by_id(self):
