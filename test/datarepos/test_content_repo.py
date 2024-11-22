@@ -1,3 +1,5 @@
+from typing import Optional
+
 from custom_exceptions import AlreadyExistsException, NotFoundException
 from datarepos.content_repo import ContentRepo
 from models.page import Page, VisibilitySetting
@@ -34,6 +36,16 @@ Embark on your journey into the exciting world of game development today!
     def setUp(self):
         super().setUp()
         self.content_repo = ContentRepo(self.connection)
+
+    def return_sample_page(self, course_id: int, created_by_user_id: Optional[int] = None):
+        return Page(
+            page_title="Page 1",
+            page_content=self.sample_page_content,
+            page_visibility_setting=VisibilitySetting.LISTED,
+            url_path_after_course_path="/page-1",
+            course_id=course_id,
+            created_by_user_id=created_by_user_id,
+        )
 
     def assert_single_page_against_matching_id_page_in_db(self, page_to_update):
         get_page_query = '''
@@ -106,14 +118,7 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        new_page = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id
-        )
+        new_page = self.return_sample_page(course.course_id, user.user_id)
 
         new_page.page_id = self.content_repo.add_new_page_and_get_id(new_page)
         self.assertIsNotNone(new_page.page_id)
@@ -126,15 +131,8 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        new_page = Page(
-            page_id=1,
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id
-        )
+        new_page = self.return_sample_page(course.course_id, user.user_id)
+        new_page.page_id = 1
 
         with self.assertRaises(AlreadyExistsException):
             self.content_repo.add_new_page_and_get_id(new_page)
@@ -148,14 +146,7 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        new_page = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id
-        )
+        new_page = self.return_sample_page(course.course_id, user.user_id)
 
         self.add_single_page_and_get_id(new_page)
 
@@ -167,22 +158,8 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
 
         new_pages = [
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 1",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.LISTED,
-                url_path_after_course_path="/",
-                course_id=courses[0].course_id
-            ),
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 2",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.HIDDEN,
-                url_path_after_course_path="/",
-                course_id=courses[1].course_id
-            )
+            self.return_sample_page(courses[0].course_id, user.user_id),
+            self.return_sample_page(courses[1].course_id, user.user_id)
         ]
 
         new_pages[0].page_id = self.add_single_page_and_get_id(new_pages[0])
@@ -215,40 +192,10 @@ Embark on your journey into the exciting world of game development today!
     def test_update_page_by_id(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
 
-        page_to_update = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=courses[0].course_id
-        )
-
-        insert_query = '''
-        INSERT INTO page (
-            page_visibility_setting,
-            page_content,
-            page_title,
-            url_path_after_course_path,
-            course_id,
-            created_by_user_id
-        ) 
-        VALUES (%s, %s, %s, %s, %s, %s);
-        '''
-        params = (
-            page_to_update.page_visibility_setting.value,
-            page_to_update.page_content,
-            page_to_update.page_title,
-            page_to_update.url_path_after_course_path,
-            page_to_update.course_id,
-            page_to_update.created_by_user_id
-        )
-
-        cursor = self.connection.cursor(dictionary=True)
-        cursor.execute(insert_query, params)
-        self.connection.commit()
-        page_to_update.page_id = cursor.lastrowid
+        page_to_update = self.return_sample_page(course.course_id, user.user_id)
+        page_to_update.page_id = self.add_single_page_and_get_id(page_to_update)
 
         page_to_update.course_id = courses[1].course_id
         page_to_update.page_content = "New page content"
@@ -265,15 +212,8 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        nonexistent_page = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id,
-            page_id=1
-        )
+        nonexistent_page = self.return_sample_page(course.course_id, user.user_id)
+        nonexistent_page.page_id = 1
 
         with self.assertRaises(NotFoundException):
             self.content_repo.update_page_by_id(nonexistent_page)
@@ -324,23 +264,11 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
 
         new_pages = [
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 1",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.LISTED,
-                url_path_after_course_path="/page-1",
-                course_id=courses[0].course_id
-            ),
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 2",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.HIDDEN,
-                url_path_after_course_path="/page-2",
-                course_id=courses[1].course_id
-            )
+            self.return_sample_page(courses[0].course_id, user.user_id),
+            self.return_sample_page(courses[1].course_id, user.user_id),
         ]
+        new_pages[1].page_title = "Page 2"
+        new_pages[1].url_path_after_course_path = "/page-2"
 
         for page in new_pages:
             page.page_id = self.add_single_page_and_get_id(page)
@@ -357,15 +285,7 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        page_to_delete = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id,
-        )
-
+        page_to_delete = self.return_sample_page(course.course_id, user.user_id)
         page_to_delete.page_id = self.add_single_page_and_get_id(page_to_delete)
 
         self.content_repo.delete_page_by_id(page_to_delete.page_id)
@@ -377,16 +297,8 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        # TODO store reused page models in constants
-        nonexistent_page_to_delete = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id,
-            page_id=1
-        )
+        nonexistent_page_to_delete = self.return_sample_page(course.course_id, user.user_id)
+        nonexistent_page_to_delete.page_id = 1
 
         with self.assertRaises(NotFoundException):
             self.content_repo.delete_page_by_id(nonexistent_page_to_delete.page_id)
@@ -397,23 +309,12 @@ Embark on your journey into the exciting world of game development today!
         course = courses[0]
 
         pages_to_delete = [
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 1",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.LISTED,
-                url_path_after_course_path="/page-1",
-                course_id=courses[0].course_id
-            ),
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 2",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.HIDDEN,
-                url_path_after_course_path="/page-2",
-                course_id=courses[0].course_id
-            )
+            self.return_sample_page(course.course_id, user.user_id),
+            self.return_sample_page(course.course_id, user.user_id),
         ]
+        pages_to_delete[1].page_title = "Page 2"
+        pages_to_delete[1].url_path_after_course_path = "/page-2"
+
         for page in pages_to_delete:
             page.page_id = self.add_single_page_and_get_id(page)
 
@@ -427,14 +328,7 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        new_page = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id
-        )
+        new_page = self.return_sample_page(course.course_id, user.user_id)
         new_page.page_id = self.add_single_page_and_get_id(new_page)
 
         page_from_repo = self.content_repo.get_page_by_id_if_exists(new_page.page_id)
@@ -449,14 +343,7 @@ Embark on your journey into the exciting world of game development today!
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        new_page = Page(
-            created_by_user_id=user.user_id,
-            page_title="Home",
-            page_content=self.sample_page_content,
-            page_visibility_setting=VisibilitySetting.LISTED,
-            url_path_after_course_path="/",
-            course_id=course.course_id
-        )
+        new_page = self.return_sample_page(course.course_id, user.user_id)
         new_page.page_id = self.add_single_page_and_get_id(new_page)
 
         page_from_repo = self.content_repo.get_page_by_url_and_course_id_if_exists(new_page.course_id, new_page.url_path_after_course_path)
@@ -472,23 +359,12 @@ Embark on your journey into the exciting world of game development today!
         course = courses[0]
 
         new_pages = [
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 1",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.LISTED,
-                url_path_after_course_path="/page-1",
-                course_id=courses[0].course_id
-            ),
-            Page(
-                created_by_user_id=user.user_id,
-                page_title="Page 2",
-                page_content=self.sample_page_content,
-                page_visibility_setting=VisibilitySetting.HIDDEN,
-                url_path_after_course_path="/page-2",
-                course_id=courses[0].course_id
-            )
+            self.return_sample_page(course.course_id, user.user_id),
+            self.return_sample_page(course.course_id, user.user_id),
         ]
+        new_pages[1].page_title = "Page 2"
+        new_pages[1].url_path_after_course_path = "/page-2"
+
         for page in new_pages:
             page.page_id = self.add_single_page_and_get_id(page)
 
