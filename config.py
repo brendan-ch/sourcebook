@@ -1,7 +1,4 @@
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 FLASK_APP_SECRET_KEY = os.environ.get("FLASK_APP_SECRET_KEY")
 
@@ -12,4 +9,6 @@ DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD")
 DATABASE_SCHEMA_NAME = os.environ.get("DATABASE_SCHEMA_NAME")
 
 TEST_CONTAINER_IMAGE = "mysql:9.0.1"
-
+FLASK_DEBUG_MODE = True if not os.environ.get("IS_PRODUCTION") else False
+FLASK_HOST = "0.0.0.0"
+FLASK_PORT = 5000
