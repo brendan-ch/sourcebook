@@ -1,0 +1,87 @@
+:root {
+    --accent-color-primary: #0b8f7f;
+    --accent-color-secondary: #246e64;
+    --background-color: #e6e6e6;
+    --primary-color: #000;
+    --secondary-color: #7c7c7c;
+}
+
+[data-theme="dark"] {
+    /* TODO define dark theme colors here*/
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-color);
+}
+
+h1 {
+    color: var(--primary-color);
+    line-height: 40px;
+    margin: 1rem 0;
+}
+
+h2 {
+    color: var(--primary-color);
+    line-height: 32px;
+    margin: 1rem 0 0.5rem 0;
+}
+
+h3 {
+    color: var(--primary-color);
+    line-height: 24px;
+    margin: 0.5rem 0;
+}
+
+p {
+    margin: 0.5rem 0;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+a {
+    color: var(--accent-color-primary);
+}
+
+a:hover {
+    color: var(--accent-color-secondary);
+}
+
+ul {
+    padding-left: 2rem;
+}
+
+button {
+    background: none;
+    border: none;
+    padding: 0;
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit; /* Inherit font styling from parent for a consistent look */
+    display: block;
+    text-align: left;
+}
+
+.footer {
+    color: var(--secondary-color);
+}
+
+.footer a {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+.bar-above-main-content {
+    display: flex;
+    min-height: 4em;
+    justify-content: space-between;
+    align-items: center;
+
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--primary-color);
+}
+
+
+@media (max-width: 800px) {
+}
+
