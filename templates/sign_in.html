@@ -1,41 +1,41 @@
 {% extends "base.html" %}
 {% block additional_header_content %}
-<style>
-    .sign-in-form {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+    <title>Sign In</title>
+    <style>
+        .sign-in-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
 
-        max-width: 15em;
-    }
+            max-width: 15em;
+        }
 
-    .sign-in-form-input-group {
-        display: flex;
-        flex-direction: column;
-    }
+        .sign-in-form-input-group {
+            display: flex;
+            flex-direction: column;
+        }
 
-    .sign-in-button {
-    }
-</style>
+        .sign-in-button {
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
-<h1>Sign In</h1>
+    <h1>Sign In</h1>
 
-<p class="error-text">{{ error }}</p>
+    <p class="error-text">{{ error }}</p>
 
-<form class="sign-in-form" action="/sign-in" method="post">
-    <div class="sign-in-form-input-group">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="text" required>
-    </div>
+    <form class="sign-in-form" action="/sign-in" method="post">
+        <div class="sign-in-form-input-group">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="text" required>
+        </div>
 
-    <div class="sign-in-form-input-group">
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" required>
-    </div>
+        <div class="sign-in-form-input-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
+        </div>
 
-    <button type="submit">[Sign In]</button>
-    <!--    <a href="#">Sign in</a>-->
-</form>
+        <button type="submit">[Sign In]</button>
+    </form>
 {% endblock %}

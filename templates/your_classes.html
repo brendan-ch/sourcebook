@@ -1,36 +1,40 @@
 {% extends "base.html" %}
 
+{% block additional_header_content %}
+    <title>Your Classes</title>
+{% endblock %}
+
 {% block body %}
-<h1>Your Classes</h1>
+    <h1>Your Classes</h1>
 
-{% for course_term in course_terms_with_courses %}
+    {% for course_term in course_terms_with_courses %}
 
-    <h2>{{ course_term.title }}</h2>
+        <h2>{{ course_term.title }}</h2>
 
-    <ul>
-        {% for course in course_term.courses %}
+        <ul>
+            {% for course in course_term.courses %}
 
-        <li>
-            <a href="{{ course.starting_url_path }}">{{ course.user_friendly_class_code }} - {{ course.title }}</a>
-        </li>
+            <li>
+                <a href="{{ course.starting_url_path }}">{{ course.user_friendly_class_code }} - {{ course.title }}</a>
+            </li>
 
-        {% endfor %}
-    </ul>
+            {% endfor %}
+        </ul>
 
-{% endfor %}
+    {% endfor %}
 
-{% if course_terms_with_courses is not defined or course_terms_with_courses|length == 0 %}
-<p>No courses to display.</p>
-{% endif %}
+    {% if course_terms_with_courses is not defined or course_terms_with_courses|length == 0 %}
+    <p>No courses to display.</p>
+    {% endif %}
 
-<br>
-
-<p class="footer">
-    Signed in as {{ current_user.full_name }} ({{ current_user.email }})
     <br>
-    <a href="/sign-out">
-        Sign out
-    </a>
-</p>
+
+    <p class="footer">
+        Signed in as {{ current_user.full_name }} ({{ current_user.email }})
+        <br>
+        <a href="/sign-out">
+            Sign out
+        </a>
+    </p>
 
 {% endblock %}
