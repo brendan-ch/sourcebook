@@ -1,6 +1,7 @@
 {% extends "base_layout.html" %}
-{% block additional_header_content %}
-    <title>401 Not Authenticated</title>
+{% block header %}
+    {{ super() }}
+    <title>404 Not Found</title>
 {% endblock %}
 {% block body %}
     <p>The content you're looking for isn't here.</p>
