@@ -142,3 +142,102 @@
     </style>
 {% endblock %}
 
+{% block body %}
+{#    TODO render from database #}
+    <nav class="landscape-nav">
+        <ul>
+            <li>
+                <a>Attendance</a>
+            </li>
+            <li>
+                <a>Grades</a>
+            </li>
+        </ul>
+
+        <br >
+
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Office Hours</a></li>
+            <li><a href="#">Lectures</a></li>
+            <li>
+                <input type="checkbox" id="menu-item-1-landscape">
+                <label for="menu-item-1-landscape">Class Recordings</label>
+                <ul class="submenu submenu-1">
+                    <li><a href="#">Run Corgi Run</a></li>
+                </ul>
+            </li>
+            <li><a href="#">Assignments</a></li>
+            <li><a href="#">Review</a></li>
+        </ul>
+
+        <br >
+
+        <p class="footer">
+            Signed in as {{ user.full_name }} ({{ user.email }})
+            <br>
+            <a href="/">
+                [View all classes]
+            </a>
+            <br>
+            <a href="/sign-out">
+                [Sign out]
+            </a>
+        </p>
+    </nav>
+
+    <input type="checkbox" id="menu-toggle">
+
+    <div class="bar-above-main-content top-navigation-bar">
+        <label for="menu-toggle" class="menu-icon">[Show navigation]</label>
+    </div>
+    <nav class="portrait-nav">
+        <div class="bar-above-main-content top-navigation-bar">
+            <label for="menu-toggle" class="menu-icon">[Hide navigation]</label>
+        </div>
+
+        <div class="portrait-nav-content">
+            <ul>
+                <li>
+                    <a>Attendance</a>
+                </li>
+                <li>
+                    <a>Grades</a>
+                </li>
+            </ul>
+
+            <br >
+
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Office Hours</a></li>
+                <li><a href="#">Lectures</a></li>
+                <li>
+                    <input type="checkbox" id="menu-item-1-portrait">
+                    <label for="menu-item-1-portrait">Class Recordings</label>
+                    <ul class="submenu submenu-1">
+                        <li><a href="#">Run Corgi Run</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Assignments</a></li>
+                <li><a href="#">Review</a></li>
+            </ul>
+
+            <br >
+
+            <p class="footer">
+                Signed in as {{ user.full_name }} ({{ user.email }})
+                <br>
+                <a href="/">
+                    [View all classes]
+                </a>
+                <br>
+                <a href="/sign-out">
+                    [Sign out]
+                </a>
+            </p>
+        </div>
+
+
+    </nav>
+{% endblock %}
