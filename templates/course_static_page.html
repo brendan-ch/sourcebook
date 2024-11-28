@@ -1,31 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title></title>
-    <meta name="description" content="">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
-
-    <meta property="og:title" content="">
-    <meta property="og:type" content="">
-    <meta property="og:url" content="">
-    <meta property="og:image" content="">
-    <meta property="og:image:alt" content="">
-
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="icon.png">
-
-    <link rel="manifest" href="site.webmanifest">
-    <meta name="theme-color" content="#fafafa">
-
+{% extends "base.html" %}
+{% block additional_header_content %}
     <style>
         body {
             display: flex;
@@ -165,62 +139,9 @@
         }
 
     </style>
-</head>
-<body>
-<nav class="landscape-nav">
-    <ul>
-        <li>
-            <a>Attendance</a>
-        </li>
-        <li>
-            <a>Grades</a>
-        </li>
-    </ul>
-
-    <br >
-
-    <ul>
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Office Hours</a></li>
-        <li><a href="#">Lectures</a></li>
-        <li>
-            <input type="checkbox" id="menu-item-1-landscape">
-            <label for="menu-item-1-landscape">Class Recordings</label>
-            <ul class="submenu submenu-1">
-                <li><a href="#">Run Corgi Run</a></li>
-                <li><a href="#">Run Corgi Run Corgi Run Corgi Run</a></li>
-            </ul>
-        </li>
-        <li><a href="#">Assignments</a></li>
-        <li><a href="#">Review</a></li>
-    </ul>
-
-    <br >
-
-    <p class="footer">
-        Signed in as {{ user.full_name }} ({{ user.email }})
-        <br>
-        <a href="/">
-            [View all classes]
-        </a>
-        <br>
-        <a href="/sign-out">
-            [Sign out]
-        </a>
-    </p>
-</nav>
-
-<input type="checkbox" id="menu-toggle">
-
-<div class="bar-above-main-content top-navigation-bar">
-    <label for="menu-toggle" class="menu-icon">[Show navigation]</label>
-</div>
-<nav class="portrait-nav">
-    <div class="bar-above-main-content top-navigation-bar">
-        <label for="menu-toggle" class="menu-icon">[Hide navigation]</label>
-    </div>
-
-    <div class="portrait-nav-content">
+{% endblock %}
+{% block body %}
+    <nav class="landscape-nav">
         <ul>
             <li>
                 <a>Attendance</a>
@@ -237,10 +158,11 @@
             <li><a href="#">Office Hours</a></li>
             <li><a href="#">Lectures</a></li>
             <li>
-                <input type="checkbox" id="menu-item-1-portrait">
-                <label for="menu-item-1-portrait">Class Recordings</label>
+                <input type="checkbox" id="menu-item-1-landscape">
+                <label for="menu-item-1-landscape">Class Recordings</label>
                 <ul class="submenu submenu-1">
                     <li><a href="#">Run Corgi Run</a></li>
+                    <li><a href="#">Run Corgi Run Corgi Run Corgi Run</a></li>
                 </ul>
             </li>
             <li><a href="#">Assignments</a></li>
@@ -260,23 +182,74 @@
                 [Sign out]
             </a>
         </p>
+    </nav>
+
+    <input type="checkbox" id="menu-toggle">
+
+    <div class="bar-above-main-content top-navigation-bar">
+        <label for="menu-toggle" class="menu-icon">[Show navigation]</label>
     </div>
+    <nav class="portrait-nav">
+        <div class="bar-above-main-content top-navigation-bar">
+            <label for="menu-toggle" class="menu-icon">[Hide navigation]</label>
+        </div>
+
+        <div class="portrait-nav-content">
+            <ul>
+                <li>
+                    <a>Attendance</a>
+                </li>
+                <li>
+                    <a>Grades</a>
+                </li>
+            </ul>
+
+            <br >
+
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Office Hours</a></li>
+                <li><a href="#">Lectures</a></li>
+                <li>
+                    <input type="checkbox" id="menu-item-1-portrait">
+                    <label for="menu-item-1-portrait">Class Recordings</label>
+                    <ul class="submenu submenu-1">
+                        <li><a href="#">Run Corgi Run</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Assignments</a></li>
+                <li><a href="#">Review</a></li>
+            </ul>
+
+            <br >
+
+            <p class="footer">
+                Signed in as {{ user.full_name }} ({{ user.email }})
+                <br>
+                <a href="/">
+                    [View all classes]
+                </a>
+                <br>
+                <a href="/sign-out">
+                    [Sign out]
+                </a>
+            </p>
+        </div>
 
 
-</nav>
+    </nav>
 
-<main>
-    <h1>Home</h1>
-    <p>This is the main content</p>
+    <main>
+        <h1>Home</h1>
+        <p>This is the main content</p>
 
-    <h2>Links</h2>
+        <h2>Links</h2>
 
-    <ul>
-        <li>
-            <a href="#">Office Hours</a>
-        </li>
-        <li>Class Recordings</li>
-    </ul>
-</main>
-</body>
-</html>
+        <ul>
+            <li>
+                <a href="#">Office Hours</a>
+            </li>
+            <li>Class Recordings</li>
+        </ul>
+    </main>
+{% endblock %}
