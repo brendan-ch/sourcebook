@@ -33,7 +33,7 @@ class UserRepo(Repo):
 
     def get_user_from_id_if_exists(self, user_id: int) -> Optional[User]:
         get_user_query = '''
-        SELECT user_id, email, full_name
+        SELECT user_id, user_uuid, email, full_name
         FROM user
         WHERE user.user_id = %s
         '''
@@ -47,8 +47,24 @@ class UserRepo(Repo):
             return User(**cursor_result)
         return None
 
+    def get_user_from_uuid_if_exists(self, user_uuid: str) -> Optional[User]:
+        get_user_query = '''
+        SELECT user_id, user_uuid, email, full_name
+        FROM user
+        WHERE user.user_uuid = %s
+        '''
+        params = (user_uuid,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_user_query, params)
+        cursor_result = cursor.fetchone()
+
+        if cursor_result:
+            return User(**cursor_result)
+        return None
+
     def add_new_user_and_get_id(self, user: User, given_password: str) -> str:
-        if user.user_id:
+        if user.user_id or user.user_uuid:
             raise AlreadyExistsException
 
         hashed_password = generate_password_hash(given_password)

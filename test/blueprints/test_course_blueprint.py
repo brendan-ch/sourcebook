@@ -36,9 +36,7 @@ class TestCourseBlueprint(TestFlaskApp):
         )
         self.add_single_enrollment(enrollment)
 
-        # Set user session to simulate login
-        with self.test_client.session_transaction() as session:
-            session["user_id"] = user.user_id
+        self.sign_user_into_session(user)
 
         response = self.test_client.get(course.starting_url_path + "/")
         self.assertEqual(response.status_code, 200)

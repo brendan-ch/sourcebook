@@ -68,15 +68,33 @@ class TestWithDatabaseContainer(unittest.TestCase):
         new_user = User(user_id=1,
                         full_name="Test Name",
                         email="example@example.com")
+
         sample_password = "C4x6Fc4YbxUsWtz.Luj*ECo*xv@xGkQXv_h.-khVXqvAkmgiZgCoBn*Kj_.C-e9@"
         hashed_password = generate_password_hash(sample_password)
         add_query = '''
         INSERT INTO user (user_id, full_name, email, hashed_password)
         VALUES (%s, %s, %s, %s)
         '''
-        params = (new_user.user_id, new_user.full_name, new_user.email, hashed_password)
+        params = (
+            new_user.user_id,
+            new_user.full_name,
+            new_user.email,
+            hashed_password
+        )
         cursor = self.connection.cursor()
         cursor.execute(add_query, params)
+
+        select_uuid_query = '''
+        SELECT user.user_uuid
+        FROM user
+        WHERE user.user_id = %s
+        '''
+        params = (new_user.user_id,)
+
+        cursor = self.connection.cursor()
+        cursor.execute(select_uuid_query, params)
+        new_user.user_uuid, = cursor.fetchone()
+
         self.connection.commit()
 
         return new_user, sample_password

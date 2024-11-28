@@ -1,3 +1,5 @@
+import uuid
+
 from datarepos.user_repo import UserRepo
 from custom_exceptions import AlreadyExistsException
 from test.test_with_database_container import TestWithDatabaseContainer
@@ -38,16 +40,23 @@ class TestUserRepo(TestWithDatabaseContainer):
         new_user, _ = self.add_sample_user_to_test_db()
 
         user_to_validate = self.user_repo.get_user_from_id_if_exists(new_user.user_id)
-        self.assertNotEqual(user_to_validate, None)
-        self.assertEqual(user_to_validate.user_id, new_user.user_id)
-        self.assertEqual(user_to_validate.full_name, new_user.full_name)
-        self.assertEqual(user_to_validate.email, new_user.email)
+        self.assertEqual(user_to_validate, new_user)
 
     def test_get_user_from_id_if_not_exists(self):
         nonexistent_user_id = 1
 
         user_to_validate = self.user_repo.get_user_from_id_if_exists(nonexistent_user_id)
-        self.assertEqual(user_to_validate, None)
+        self.assertIsNone(user_to_validate)
+
+    def test_get_user_from_uuid_if_exists(self):
+        new_user, _ = self.add_sample_user_to_test_db()
+        user_to_validate = self.user_repo.get_user_from_uuid_if_exists(new_user.user_uuid)
+        self.assertEqual(user_to_validate, new_user)
+
+    def test_get_user_from_uuid_if_not_exists(self):
+        nonexistent_uuid = str(uuid.uuid4())
+        user_to_validate = self.user_repo.get_user_from_uuid_if_exists(nonexistent_uuid)
+        self.assertIsNone(user_to_validate)
 
     def test_add_new_user_and_get_id(self):
         new_user = User(

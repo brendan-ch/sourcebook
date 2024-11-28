@@ -1,17 +1,14 @@
 from flask import Blueprint, render_template, session, abort
 
+from flask_helpers import get_user_from_session
 from flask_repository_getters import get_course_repository, get_user_repository
 
 course_bp = Blueprint("course", __name__)
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 def course_home_page(course_url: str):
+    user = get_user_from_session()
     course_repo = get_course_repository()
-
-    user = None
-    if "user_id" in session and session["user_id"]:
-        user_repo = get_user_repository()
-        user = user_repo.get_user_from_id_if_exists(session["user_id"])
 
     course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
     if not course:
@@ -36,8 +33,6 @@ def course_home_page(course_url: str):
         user=user,
         role=role,
     )
-
-
 
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
 def course_custom_static_url_page(course_url: str, custom_static_path: str):
