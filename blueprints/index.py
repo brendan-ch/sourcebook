@@ -12,7 +12,7 @@ def your_classes_page():
         return redirect("/sign-out")
 
     course_repository = get_course_repository()
-    course_terms_with_courses = course_repository.get_course_terms_with_courses_for_user_id(user_id)
+    course_terms_with_courses = course_repository.get_course_terms_with_courses_for_user_id(user.user_id)
 
     return render_template(
         "your_classes.html",
@@ -54,7 +54,7 @@ def sign_in_page():
 
 @index_bp.route("/sign-out", methods=["GET"])
 def sign_out_page():
-    if "user_id" in session:
-        session.pop("user_id")
+    if "user_uuid" in session:
+        session.pop("user_uuid")
 
     return redirect("/")
