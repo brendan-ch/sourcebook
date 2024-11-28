@@ -33,7 +33,7 @@ class UserRepo(Repo):
 
     def get_user_from_id_if_exists(self, user_id: int) -> Optional[User]:
         get_user_query = '''
-        SELECT user_id, email, full_name
+        SELECT user_id, user_uuid, email, full_name
         FROM user
         WHERE user.user_id = %s
         '''
