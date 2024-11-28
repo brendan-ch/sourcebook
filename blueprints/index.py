@@ -1,18 +1,13 @@
 from flask import Blueprint, render_template, request, session, redirect, flash
 
+from flask_helpers import get_user_from_session
 from flask_repository_getters import get_user_repository, get_course_repository
 
 index_bp = Blueprint("index", __name__)
 
 @index_bp.route("/")
 def your_classes_page():
-    if "user_id" not in session:
-        return redirect("/sign-in")
-
-    user_id = session["user_id"]
-
-    user_repository = get_user_repository()
-    user = user_repository.get_user_from_id_if_exists(user_id)
+    user = get_user_from_session()
     if not user:
         return redirect("/sign-out")
 
@@ -28,7 +23,8 @@ def your_classes_page():
 @index_bp.route("/sign-in", methods=["GET", "POST"])
 def sign_in_page():
     if request.method == "GET":
-        if "user_id" in session:
+        user = get_user_from_session()
+        if user:
             return redirect("/")
 
         return render_template("sign_in.html")
@@ -51,7 +47,9 @@ def sign_in_page():
                 error="Incorrect email or password, please try again."
             ), 401
 
-        session["user_id"] = user_id
+        user = user_repository.get_user_from_id_if_exists(user_id)
+
+        session["user_uuid"] = user.user_uuid
         return redirect("/")
 
 @index_bp.route("/sign-out", methods=["GET"])
