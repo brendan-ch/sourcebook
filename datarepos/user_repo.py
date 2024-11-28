@@ -48,7 +48,7 @@ class UserRepo(Repo):
         return None
 
     def add_new_user_and_get_id(self, user: User, given_password: str) -> str:
-        if user.user_id:
+        if user.user_id or user.user_uuid:
             raise AlreadyExistsException
 
         hashed_password = generate_password_hash(given_password)
