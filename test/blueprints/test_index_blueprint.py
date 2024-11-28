@@ -1,3 +1,5 @@
+import uuid
+
 from test.test_flask_app import TestFlaskApp
 
 class TestIndexBlueprint(TestFlaskApp):
@@ -12,7 +14,7 @@ class TestIndexBlueprint(TestFlaskApp):
 
         # Set user session to simulate login
         with self.test_client.session_transaction() as session:
-            session["user_id"] = user.user_id
+            session["user_uuid"] = user.user_uuid
 
         response = self.test_client.get("/")
         self.assertEqual(response.status_code, 200)
@@ -31,7 +33,7 @@ class TestIndexBlueprint(TestFlaskApp):
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
 
         with self.test_client.session_transaction() as session:
-            session["user_id"] = user.user_id
+            session["user_uuid"] = user.user_uuid
 
         response = self.test_client.get("/")
         self.assertEqual(response.status_code, 200)
@@ -99,14 +101,15 @@ class TestIndexBlueprint(TestFlaskApp):
         self.assertIn(b"Please fill out all missing fields", response.data)
 
     def test_sign_out(self):
+        sample_fake_uuid = str(uuid.uuid4())
         with self.test_client.session_transaction() as session:
-            session["user_id"] = 1
+            session["user_uuid"] = sample_fake_uuid
 
         sign_out_response = self.test_client.get("/sign-out")
         self.assertEqual(sign_out_response.status_code, 302)
 
         with self.test_client.session_transaction() as session:
-            self.assertNotIn("user_id", session)
+            self.assertNotIn("user_uuid", session)
 
     def test_sign_out_if_already_signed_out(self):
         sign_out_response = self.test_client.get("/sign-out")

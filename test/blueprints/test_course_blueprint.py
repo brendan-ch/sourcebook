@@ -38,7 +38,7 @@ class TestCourseBlueprint(TestFlaskApp):
 
         # Set user session to simulate login
         with self.test_client.session_transaction() as session:
-            session["user_id"] = user.user_id
+            session["user_uuid"] = user.user_uuid
 
         response = self.test_client.get(course.starting_url_path + "/")
         self.assertEqual(response.status_code, 200)
