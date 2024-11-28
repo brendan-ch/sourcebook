@@ -9,7 +9,7 @@ index_bp = Blueprint("index", __name__)
 def your_classes_page():
     user = get_user_from_session()
     if not user:
-        return redirect("/sign-out")
+        return redirect("/sign-in")
 
     course_repository = get_course_repository()
     course_terms_with_courses = course_repository.get_course_terms_with_courses_for_user_id(user.user_id)
