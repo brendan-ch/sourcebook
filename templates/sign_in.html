@@ -1,30 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{% extends "base_layout.html" %}
+{% block header %}
+    {{ super() }}
     <title>Sign In</title>
-    <meta name="description" content="">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
-
-    <meta property="og:title" content="">
-    <meta property="og:type" content="">
-    <meta property="og:url" content="">
-    <meta property="og:image" content="">
-    <meta property="og:image:alt" content="">
-
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="icon.png">
-
-    <link rel="manifest" href="site.webmanifest">
-    <meta name="theme-color" content="#fafafa">
-
     <style>
         .sign-in-form {
             display: flex;
@@ -42,26 +19,24 @@
         .sign-in-button {
         }
     </style>
-</head>
-<body>
-<h1>Sign In</h1>
+{% endblock %}
 
-<p class="error-text">{{ error }}</p>
+{% block body %}
+    <h1>Sign In</h1>
 
-<form class="sign-in-form" action="/sign-in" method="post">
-    <div class="sign-in-form-input-group">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="text" required>
-    </div>
+    <p class="error-text">{{ error }}</p>
 
-    <div class="sign-in-form-input-group">
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" required>
-    </div>
+    <form class="sign-in-form" action="/sign-in" method="post">
+        <div class="sign-in-form-input-group">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="text" required>
+        </div>
 
-    <button type="submit">[Sign In]</button>
-    <!--    <a href="#">Sign in</a>-->
-</form>
+        <div class="sign-in-form-input-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
+        </div>
 
-</body>
-</html>
+        <button type="submit">[Sign In]</button>
+    </form>
+{% endblock %}

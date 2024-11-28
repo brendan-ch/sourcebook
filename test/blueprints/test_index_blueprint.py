@@ -51,7 +51,7 @@ class TestIndexBlueprint(TestFlaskApp):
     def test_sign_in_page(self):
         response = self.test_client.get("/sign-in")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Sign in", response.data)
+        self.assertIn(b"Sign In", response.data)
         self.assertIn(b"<input", response.data)
         self.assertIn(b"<button", response.data)
 
