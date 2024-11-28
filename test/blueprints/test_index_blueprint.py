@@ -13,8 +13,7 @@ class TestIndexBlueprint(TestFlaskApp):
         ) = self.add_sample_course_term_and_course_enrollment_cluster(user.user_id)
 
         # Set user session to simulate login
-        with self.test_client.session_transaction() as session:
-            session["user_uuid"] = user.user_uuid
+        self.sign_user_into_session(user)
 
         response = self.test_client.get("/")
         self.assertEqual(response.status_code, 200)
@@ -32,8 +31,7 @@ class TestIndexBlueprint(TestFlaskApp):
         user, sample_password = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
 
-        with self.test_client.session_transaction() as session:
-            session["user_uuid"] = user.user_uuid
+        self.sign_user_into_session(user)
 
         response = self.test_client.get("/")
         self.assertEqual(response.status_code, 200)
@@ -101,9 +99,7 @@ class TestIndexBlueprint(TestFlaskApp):
         self.assertIn(b"Please fill out all missing fields", response.data)
 
     def test_sign_out(self):
-        sample_fake_uuid = str(uuid.uuid4())
-        with self.test_client.session_transaction() as session:
-            session["user_uuid"] = sample_fake_uuid
+        self.sign_user_into_session()
 
         sign_out_response = self.test_client.get("/sign-out")
         self.assertEqual(sign_out_response.status_code, 302)
