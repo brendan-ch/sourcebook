@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>404 Not Found</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
-</head>
-<body>
-<p>The content you're looking for isn't here.</p>
-<br>
-<a href="/">Back to your classes</a>
-</body>
-</html>
+{% extends "base.html" %}
+{% block additional_header_content %}
+    <title>401 Not Authenticated</title>
+{% endblock %}
+{% block body %}
+    <p>The content you're looking for isn't here.</p>
+    <br>
+    <a href="/">Back to your classes</a>
+{% endblock %}
