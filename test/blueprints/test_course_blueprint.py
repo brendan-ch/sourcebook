@@ -132,7 +132,7 @@ This is the home page.
         self.assertEqual(response.status_code, 404)
 
         soup = BeautifulSoup(response.data, "html.parser")
-        matching_tag = soup.find(string="This course does not have a home page.")
+        matching_tag = soup.find(string="This page does not exist within the course.")
         self.assertIsNotNone(matching_tag)
 
     def test_course_home_page_content_and_visibility_to_student(self):

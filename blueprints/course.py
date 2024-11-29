@@ -36,7 +36,7 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
             course=course,
             user=user,
             role=role,
-            page_html_content="<p>This course does not have a home page.</p>",
+            page_html_content="<p>This page does not exist within the course.</p>",
         ), 404
     elif page.page_visibility_setting == VisibilitySetting.HIDDEN \
             and role == Role.STUDENT:
