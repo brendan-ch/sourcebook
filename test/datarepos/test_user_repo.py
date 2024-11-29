@@ -142,3 +142,17 @@ class TestUserRepo(TestWithDatabaseContainer):
         self.assertEqual(full_name, new_user.full_name)
         self.assertEqual(email, new_user.email)
 
+    def test_delete_user_by_id(self):
+        pass
+
+    def test_delete_nonexistent_user_by_id(self):
+        pass
+
+    def test_delete_user_with_course_enrollment_dependencies(self):
+        pass
+
+    def test_delete_user_with_page_creation_dependencies(self):
+        pass
+
+    def test_delete_user_with_file_creation_dependencies(self):
+        pass
