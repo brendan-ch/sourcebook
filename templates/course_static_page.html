@@ -6,18 +6,7 @@
 
 {% block body %}
     {{ super() }}
-{#    TODO render from database #}
     <main>
-        <h1>Home</h1>
-        <p>This is the main content</p>
-
-        <h2>Links</h2>
-
-        <ul>
-            <li>
-                <a href="#">Office Hours</a>
-            </li>
-            <li>Class Recordings</li>
-        </ul>
+        {{ page_html_content|safe }}
     </main>
 {% endblock %}

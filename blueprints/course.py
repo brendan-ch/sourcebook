@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session, abort
 
 from flask_helpers import get_user_from_session
 from flask_repository_getters import get_course_repository, get_user_repository
+from models.page import Page, VisibilitySetting
 
 course_bp = Blueprint("course", __name__)
 
@@ -32,6 +33,7 @@ def course_home_page(course_url: str):
         course=course,
         user=user,
         role=role,
+        # page_html_content=sample_html_content,
     )
 
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
