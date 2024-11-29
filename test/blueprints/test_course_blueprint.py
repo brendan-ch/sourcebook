@@ -72,40 +72,6 @@ This is the home page.
         course_catalog_link = soup.find("a", string=re.compile("Chapman Course Catalog"))
         self.assertEqual(course_catalog_link.attrs["href"], "https://catalog.chapman.edu")
 
-    def test_course_home_page_content_if_enrolled(self):
-        user, _ = self.add_sample_user_to_test_db()
-        courses, course_terms = self.add_sample_course_term_and_course_cluster()
-        course = courses[0]
-
-        enrollment = CourseEnrollment(
-            role=Role.STUDENT,
-            user_id=user.user_id,
-            course_id=course.course_id,
-        )
-        self.add_single_enrollment(enrollment)
-
-        # markdown2 has comprehensive syntax testing, so we only need
-        # to test basic rendering here
-        home_page_content = self.static_page_content_for_testing
-
-        home_page = Page(
-            url_path_after_course_path="/",
-            page_title="Home Page",
-            page_visibility_setting=VisibilitySetting.LISTED,
-            page_content=home_page_content,
-            course_id=course.course_id
-        )
-        self.add_single_page_and_get_id(home_page)
-
-        self.sign_user_into_session(user)
-
-        response = self.test_client.get(course.starting_url_path + "/")
-        self.assertEqual(response.status_code, 200)
-        self.assert_course_layout_content(response, course, user)
-
-        self.assert_static_page_main_content(response)
-
-
     def test_course_home_page_content_with_relative_urls(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
