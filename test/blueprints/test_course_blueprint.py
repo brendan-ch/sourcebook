@@ -1,3 +1,6 @@
+import re
+
+from bs4 import BeautifulSoup
 from flask import Response, session
 
 from models.course import Course
@@ -9,20 +12,23 @@ from test.test_flask_app import TestFlaskApp
 class TestCourseBlueprint(TestFlaskApp):
     def assert_course_layout_content(self, response: Response, course: Course, user: User):
         # Check reused layout content for the course
-        # Includes:
-        # - all classes
-        # - name and email
-        # - sign out
+        # Future work:
         # - pages that should be visible in navigation (future)
         # - pages that should be collapsed (future)
 
-        # TODO use BeautifulSoup for testing
+        soup = BeautifulSoup(response.data, "html.parser")
 
-        self.assertIn(b"Sign out", response.data)
-        self.assertIn(b"View all classes", response.data)
-        self.assertIn(user.email.encode(), response.data)
-        self.assertIn(user.full_name.encode(), response.data)
-        pass
+        sign_out_tag = soup.find("a", string=re.compile("sign out", re.IGNORECASE))
+        self.assertEqual(sign_out_tag.attrs["href"], "/sign-out")
+
+        view_all_classes_tag = soup.find("a", string=re.compile("view all classes", re.IGNORECASE))
+        self.assertEqual(view_all_classes_tag.attrs["href"], "/")
+
+        email_text = soup.find(string=re.compile(user.email))
+        self.assertIsNotNone(email_text)
+
+        full_name_text = soup.find(string=re.compile(user.full_name))
+        self.assertIsNotNone(full_name_text)
 
     def test_course_home_page_content_if_enrolled(self):
         user, _ = self.add_sample_user_to_test_db()
