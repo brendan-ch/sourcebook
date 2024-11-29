@@ -325,3 +325,37 @@ This is the home page.
             cursor = self.connection.cursor()
             cursor.execute(delete_query)
             self.connection.commit()
+
+    def test_course_custom_static_url_page_content_if_course_not_exists(self):
+        response = self.test_client.get("/cpsc-236-f24/custom-page/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_course_custom_static_url_page_content_with_relative_urls(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        enrollment = CourseEnrollment(
+            role=Role.STUDENT,
+            user_id=user.user_id,
+            course_id=course.course_id,
+        )
+        self.add_single_enrollment(enrollment)
+
+        page_content_with_relative_links = self.static_page_content_with_links_for_testing
+        page = Page(
+            url_path_after_course_path="/custom-page",
+            page_title="Custom Page",
+            page_visibility_setting=VisibilitySetting.LISTED,
+            page_content=page_content_with_relative_links,
+            course_id=course.course_id
+        )
+        self.add_single_page_and_get_id(page)
+
+        self.sign_user_into_session(user)
+
+        response = self.test_client.get(course.starting_url_path + page.url_path_after_course_path + "/")
+        self.assertEqual(response.status_code, 200)
+        self.assert_course_layout_content(response, course, user)
+
+        self.assert_static_page_content_with_links(course, response)
