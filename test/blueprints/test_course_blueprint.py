@@ -43,6 +43,8 @@ class TestCourseBlueprint(TestFlaskApp):
         )
         self.add_single_enrollment(enrollment)
 
+        # markdown2 has comprehensive syntax testing, so we only need
+        # to test basic rendering here
         home_page_content = """
 # Home Page
 
