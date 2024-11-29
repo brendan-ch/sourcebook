@@ -1,4 +1,8 @@
+import re
+import urllib.parse
+
 import markdown2
+from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, session, abort
 
 from flask_helpers import get_user_from_session
@@ -35,6 +39,17 @@ def course_home_page(course_url: str):
         page_html_content = "<p>This course does not have a home page.</p>"
     else:
         page_html_content = markdown2.markdown(page.page_content)
+
+    soup = BeautifulSoup(page_html_content, "html.parser")
+    all_relative_links = soup.find_all("a", href=re.compile("^/"))
+    for relative_link in all_relative_links:
+        replacement = soup.new_tag("a", **relative_link.attrs)
+        replacement.string = relative_link.string
+        url_without_beginning_slash = relative_link.attrs["href"][1:]
+        replacement.attrs["href"] = urllib.parse.urljoin(course.starting_url_path + "/", url_without_beginning_slash)
+        relative_link.replace_with(replacement)
+
+    page_html_content = soup.prettify()
 
     return render_template(
         "course_static_page.html",
