@@ -86,5 +86,5 @@ class UserRepo(Repo):
             if e.errno == self.MYSQL_DUPLICATE_ENTRY_EXCEPTION_CODE:
                 raise AlreadyExistsException
 
-    def delete_user_by_id(self, user_id: str):
+    def delete_user_by_id(self, user_id: int):
         pass
