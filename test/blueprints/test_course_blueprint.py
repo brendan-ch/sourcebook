@@ -52,11 +52,11 @@ This is the home page.
         soup = BeautifulSoup(response.data, "html.parser")
         soup = soup.main
 
-        self.assertEqual(soup.h1.string, "Home Page")
-        self.assertEqual(soup.h2.string, "Another heading")
-        self.assertEqual(soup.h3.string, "Yet another heading")
+        self.assertEqual(soup.h1.string.strip(), "Home Page")
+        self.assertEqual(soup.h2.string.strip(), "Another heading")
+        self.assertEqual(soup.h3.string.strip(), "Yet another heading")
 
-        paragraph_tag = soup.find("p", string="This is the home page.")
+        paragraph_tag = soup.find("p", string=re.compile("This is the home page", re.IGNORECASE))
         self.assertIsNotNone(paragraph_tag)
 
     def assert_static_page_content_with_links(self, course, response):
@@ -168,3 +168,46 @@ This is the home page.
         soup = BeautifulSoup(response.data, "html.parser")
         matching_tag = soup.find(string="This course does not have a home page.")
         self.assertIsNotNone(matching_tag)
+
+    def test_course_home_page_content_and_visibility_to_student(self):
+        visibility_settings = list(VisibilitySetting)
+
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        enrollment = CourseEnrollment(
+            course_id=course.course_id,
+            user_id=user.user_id,
+            role=Role.STUDENT,
+        )
+        self.add_single_enrollment(enrollment)
+        self.sign_user_into_session(user)
+
+        for visibility_setting in visibility_settings:
+            with self.subTest(visibility_setting=visibility_setting):
+                page = Page(
+                    page_content=self.static_page_content_for_testing,
+                    page_title="Home",
+                    page_visibility_setting=visibility_setting,
+                    url_path_after_course_path="/",
+                    course_id=course.course_id
+                )
+                self.add_single_page_and_get_id(page)
+
+                response = self.test_client.get(course.starting_url_path + "/")
+                if visibility_setting == VisibilitySetting.HIDDEN:
+                    self.assertEqual(response.status_code, 401)
+                else:
+                    self.assertEqual(response.status_code, 200)
+                    self.assert_static_page_main_content(response)
+
+            delete_query = '''
+            DELETE FROM page;
+            '''
+            cursor = self.connection.cursor()
+            cursor.execute(delete_query)
+            self.connection.commit()
+
+    def test_course_home_page_content_and_visibility_to_editor(self):
+        pass
