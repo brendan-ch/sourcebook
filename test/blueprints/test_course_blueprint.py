@@ -106,7 +106,7 @@ This is the home page.
         self.assert_static_page_main_content(response)
 
 
-    def test_relative_url_replacements_on_home_page(self):
+    def test_course_home_page_content_with_relative_urls(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
@@ -136,7 +136,7 @@ This is the home page.
 
         self.assert_static_page_content_with_links(course, response)
 
-    def test_course_home_page_content_if_not_enrolled_and_private(self):
+    def test_course_home_page_content_if_not_enrolled(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
