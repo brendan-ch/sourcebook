@@ -11,7 +11,9 @@ Prerequisites:
 - MySQL shell
 - Docker (for tests)
 
-The first step is to create and load the database schema, located under
+### MySQL
+
+Database schema definitions are located under
 `sql/setup_schema.sql`. With the MySQL shell installed, you can run
 something like this to create your schema:
 
@@ -31,4 +33,28 @@ Then, exit the MySQL shell with Ctrl+D and load the schema definition:
 $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_schema.sql
 ```
 
+### Environment variables
 
+Duplicate the `.env.example` file, name it `.env`, and set the variables.
+
+See [the Flask documentation](https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY)
+for how to quickly generate the `FLASK_APP_SECRET_KEY` value.
+
+### Python
+
+Set up your Python virtual environment:
+
+```shell
+# Create and activate the virtual environment
+$ python -m venv .venv
+$ source .venv/bin/activate
+
+# Install packages
+$ pip install -r requirements.txt
+```
+
+You're now ready to start the application.
+
+```shell
+$ python app.py
+```
