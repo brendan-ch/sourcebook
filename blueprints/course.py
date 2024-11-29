@@ -1,3 +1,4 @@
+import markdown2
 from flask import Blueprint, render_template, session, abort
 
 from flask_helpers import get_user_from_session
@@ -25,7 +26,6 @@ def course_home_page(course_url: str):
             custom_error_message="You need to be enrolled in this course to see it."
         ), 401
 
-    page_html_content = None
     content_repository = get_content_repository()
     page = content_repository.get_page_by_url_and_course_id_if_exists(
         course_id=course.course_id,
@@ -33,6 +33,8 @@ def course_home_page(course_url: str):
     )
     if not page or page.page_visibility_setting == VisibilitySetting.HIDDEN:
         page_html_content = "<p>This course does not have a home page.</p>"
+    else:
+        page_html_content = markdown2.markdown(page.page_content)
 
     return render_template(
         "course_static_page.html",
