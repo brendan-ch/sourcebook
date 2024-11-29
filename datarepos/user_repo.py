@@ -3,7 +3,7 @@ from typing import Optional
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from custom_exceptions import AlreadyExistsException
+from custom_exceptions import AlreadyExistsException, DependencyException
 from datarepos.repo import Repo
 from models.user import User
 
@@ -87,4 +87,10 @@ class UserRepo(Repo):
                 raise AlreadyExistsException
 
     def delete_user_by_id(self, user_id: int):
-        pass
+        delete_user_query = '''
+        DELETE FROM user
+        WHERE user.user_id = %s
+        '''
+        params = (user_id,)
+
+        self.execute_dml_query_and_check_rowcount_greater_than_0(delete_user_query, params)
