@@ -1,11 +1,11 @@
 -- Tables
-CREATE TABLE course_term (
+CREATE TABLE IF NOT EXISTS course_term (
     course_term_id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(64) NOT NULL,
     position_from_top INT NOT NULL
 );
 
-CREATE TABLE course (
+CREATE TABLE IF NOT EXISTS course (
     course_id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(64) NOT NULL,
     course_term_id INT,
@@ -18,7 +18,7 @@ CREATE TABLE course (
     FOREIGN KEY (course_term_id) REFERENCES course_term(course_term_id)
 );
 
-CREATE TABLE user (
+CREATE TABLE IF NOT EXISTS user (
     -- for internal backend code
     user_id INT PRIMARY KEY AUTO_INCREMENT,
 
@@ -31,7 +31,7 @@ CREATE TABLE user (
     hashed_password CHAR(163) NOT NULL
 );
 
-CREATE TABLE enrollment (
+CREATE TABLE IF NOT EXISTS enrollment (
     course_id INT NOT NULL,
     user_id INT NOT NULL,
     role INT NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE enrollment (
     FOREIGN KEY (user_id) REFERENCES user(user_id)
 );
 
-CREATE TABLE page (
+CREATE TABLE IF NOT EXISTS page (
     page_id INT PRIMARY KEY AUTO_INCREMENT,
     page_visibility_setting INT NOT NULL,
     page_content MEDIUMTEXT NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE page (
     FOREIGN KEY (course_id) REFERENCES course(course_id)
 );
 
-CREATE TABLE file (
+CREATE TABLE IF NOT EXISTS file (
     file_id INT PRIMARY KEY AUTO_INCREMENT,
     file_uuid CHAR(36) UNIQUE NOT NULL,
     filepath VARCHAR(128) UNIQUE NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE file (
     FOREIGN KEY (uploaded_by_user_id) REFERENCES user(user_id)
 );
 
-CREATE TABLE page_file_bridge (
+CREATE TABLE IF NOT EXISTS page_file_bridge (
     page_id INT,
     file_id INT,
 
@@ -81,7 +81,7 @@ CREATE TABLE page_file_bridge (
     FOREIGN KEY (file_id) REFERENCES file(file_id)
 );
 
-CREATE TABLE attendance_session (
+CREATE TABLE IF NOT EXISTS attendance_session (
     attendance_session_id INT PRIMARY KEY AUTO_INCREMENT,
     course_id INT NOT NULL,
     opening_time DATETIME NOT NULL,
@@ -93,7 +93,7 @@ CREATE TABLE attendance_session (
     FOREIGN KEY (course_id) REFERENCES course(course_id)
 );
 
-CREATE TABLE attendance_record (
+CREATE TABLE IF NOT EXISTS attendance_record (
     user_id INT NOT NULL,
     attendance_session_id INT NOT NULL,
 
@@ -103,8 +103,9 @@ CREATE TABLE attendance_record (
 );
 
 -- Triggers
+DROP TRIGGER IF EXISTS before_insert_trigger;
 DELIMITER //
-CREATE TRIGGER before_insert_trigger
+CREATE TRIGGER IF NOT EXISTS before_insert_trigger
     BEFORE INSERT ON user
     FOR EACH ROW
 BEGIN
@@ -117,8 +118,9 @@ BEGIN
 END //
 DELIMITER ;
 
+DROP TRIGGER IF EXISTS before_insert_trigger_on_file;
 DELIMITER //
-CREATE TRIGGER before_insert_trigger_on_file
+CREATE TRIGGER IF NOT EXISTS before_insert_trigger_on_file
     BEFORE INSERT ON file
     FOR EACH ROW
 BEGIN
@@ -129,3 +131,4 @@ BEGIN
         END REPEAT;
     SET NEW.file_uuid = new_uuid;
 END //
+DELIMITER ;
