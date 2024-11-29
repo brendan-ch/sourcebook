@@ -20,14 +20,20 @@ class TestIndexBlueprint(TestFlaskApp):
         response = self.test_client.get("/")
         self.assertEqual(response.status_code, 200)
 
+        soup = BeautifulSoup(response.data, "html.parser")
+
         for course_term_with_courses in course_terms_to_enroll_user_in:
-            self.assertIn(course_term_with_courses.title.encode(), response.data)
+            matching_tag = soup.find(string=re.compile(course_term_with_courses.title))
+            self.assertIsNotNone(matching_tag)
 
         for course_to_check in courses_to_enroll_user_in_as_student:
-            self.assertIn(course_to_check.title.encode(), response.data)
+            matching_tag = soup.find("a", string=re.compile(course_to_check.title))
+            self.assertIn("href", matching_tag.attrs)
+            self.assertEqual(matching_tag["href"], course_to_check.starting_url_path)
 
         for course_to_check in courses_to_not_enroll_user_in:
-            self.assertNotIn(course_to_check.title.encode(), response.data)
+            matching_tag = soup.find("a", string=re.compile(course_to_check.title))
+            self.assertIsNone(matching_tag)
 
     def test_your_classes_if_no_classes(self):
         user, sample_password = self.add_sample_user_to_test_db()
