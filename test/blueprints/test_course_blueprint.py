@@ -163,7 +163,7 @@ This is the home page.
         self.sign_user_into_session(user)
 
         response = self.test_client.get(course.starting_url_path + "/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
 
         soup = BeautifulSoup(response.data, "html.parser")
         matching_tag = soup.find(string="This course does not have a home page.")
@@ -210,4 +210,38 @@ This is the home page.
             self.connection.commit()
 
     def test_course_home_page_content_and_visibility_to_editor(self):
-        pass
+        visibility_settings = list(VisibilitySetting)
+
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        enrollment = CourseEnrollment(
+            course_id=course.course_id,
+            user_id=user.user_id,
+            role=Role.ASSISTANT,
+        )
+        self.add_single_enrollment(enrollment)
+        self.sign_user_into_session(user)
+
+        for visibility_setting in visibility_settings:
+            with self.subTest(visibility_setting=visibility_setting):
+                page = Page(
+                    page_content=self.static_page_content_for_testing,
+                    page_title="Home",
+                    page_visibility_setting=visibility_setting,
+                    url_path_after_course_path="/",
+                    course_id=course.course_id
+                )
+                self.add_single_page_and_get_id(page)
+
+                response = self.test_client.get(course.starting_url_path + "/")
+                self.assertEqual(response.status_code, 200)
+                self.assert_static_page_main_content(response)
+
+            delete_query = '''
+            DELETE FROM page;
+            '''
+            cursor = self.connection.cursor()
+            cursor.execute(delete_query)
+            self.connection.commit()
