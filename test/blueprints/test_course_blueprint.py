@@ -79,6 +79,53 @@ This is the home page.
         paragraph_tag = soup.find("p", string="This is the home page.")
         self.assertIsNotNone(paragraph_tag)
 
+    def test_relative_url_replacements_on_home_page(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        enrollment = CourseEnrollment(
+            role=Role.STUDENT,
+            user_id=user.user_id,
+            course_id=course.course_id,
+        )
+        self.add_single_enrollment(enrollment)
+
+        home_page_content_with_relative_links = """
+# Home Page
+
+- [Office Hours](/office-hours)
+- [Assignments](/assignments)
+- [Chapman Course Catalog](https://catalog.chapman.edu)
+        """
+        home_page = Page(
+            url_path_after_course_path="/",
+            page_title="Home Page",
+            page_visibility_setting=VisibilitySetting.LISTED,
+            page_content=home_page_content_with_relative_links,
+            course_id=course.course_id
+        )
+        self.add_single_page_and_get_id(home_page)
+
+        self.sign_user_into_session(user)
+
+        response = self.test_client.get(course.starting_url_path + "/")
+        self.assertEqual(response.status_code, 200)
+        self.assert_course_layout_content(response, course, user)
+
+        soup = BeautifulSoup(response.data, "html.parser")
+        # Avoid asserting against navigation content
+        soup = soup.main
+
+        office_hours_link = soup.find("a", string=re.compile("Office Hours"))
+        self.assertEqual(office_hours_link.attrs["href"], course.starting_url_path + "/office-hours")
+
+        assignments_link = soup.find("a", string=re.compile("Assignments"))
+        self.assertEqual(assignments_link.attrs["href"], course.starting_url_path + "/assignments")
+
+        course_catalog_link = soup.find("a", string=re.compile("Chapman Course Catalog"))
+        self.assertEqual(course_catalog_link.attrs["href"], "https://catalog.chapman.edu")
+
     def test_course_home_page_content_if_not_enrolled_and_private(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
