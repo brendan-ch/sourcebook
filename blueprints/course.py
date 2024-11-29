@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session, abort
 
 from flask_helpers import get_user_from_session
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
+from models.page import VisibilitySetting
 
 course_bp = Blueprint("course", __name__)
 
@@ -30,7 +31,7 @@ def course_home_page(course_url: str):
         course_id=course.course_id,
         url_path="/"
     )
-    if not page:
+    if not page or page.page_visibility_setting == VisibilitySetting.HIDDEN:
         page_html_content = "<p>This course does not have a home page.</p>"
 
     return render_template(
