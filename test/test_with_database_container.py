@@ -11,6 +11,7 @@ from db_connection_details import DBConnectionDetails
 from models.course import Course
 from models.course_enrollment import CourseEnrollment, Role
 from models.course_term import CourseTerm
+from models.page import Page
 from models.user import User
 
 TEST_ROOT_PASSWORD = "12345"
@@ -197,3 +198,30 @@ class TestWithDatabaseContainer(unittest.TestCase):
             )
             self.add_single_enrollment(enrollment)
         return course_terms_to_enroll_user_in, courses_to_enroll_user_in_as_assistant, courses_to_enroll_user_in_as_student, courses_to_not_enroll_user_in
+
+    def add_single_page_and_get_id(self, page: Page) -> int:
+        insert_page_query = '''
+        INSERT INTO page (
+            page_visibility_setting,
+            page_content,
+            page_title,
+            url_path_after_course_path,
+            course_id,
+            created_by_user_id
+        ) 
+        VALUES (%s, %s, %s, %s, %s, %s);
+        '''
+        params = (
+            page.page_visibility_setting.value,
+            page.page_content,
+            page.page_title,
+            page.url_path_after_course_path,
+            page.course_id,
+            page.created_by_user_id
+        )
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(insert_page_query, params)
+        self.connection.commit()
+
+        return cursor.lastrowid
