@@ -2,7 +2,7 @@ import re
 from typing import Optional
 
 from bs4 import BeautifulSoup
-from flask import Response, session
+from flask import Response
 
 from models.course import Course
 from models.course_enrollment import CourseEnrollment, Role
@@ -100,12 +100,7 @@ This is the home page.
                 response = self.test_client.get(course.starting_url_path + "/")
                 self.assert_course_layout_content(response, course, user, role)
 
-            delete_query = '''
-            DELETE FROM enrollment;
-            '''
-            cursor = self.connection.cursor()
-            cursor.execute(delete_query)
-            self.connection.commit()
+            self.clear_all_enrollments()
 
     def test_course_home_page_content_with_relative_urls(self):
         user, _ = self.add_sample_user_to_test_db()

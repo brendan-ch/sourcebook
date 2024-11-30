@@ -225,3 +225,11 @@ class TestWithDatabaseContainer(unittest.TestCase):
         self.connection.commit()
 
         return cursor.lastrowid
+
+    def clear_all_enrollments(self):
+        delete_query = '''
+        DELETE FROM enrollment;
+        '''
+        cursor = self.connection.cursor()
+        cursor.execute(delete_query)
+        self.connection.commit()
