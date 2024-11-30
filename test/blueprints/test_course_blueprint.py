@@ -449,14 +449,13 @@ This is the home page.
                 self.add_single_enrollment(enrollment)
 
                 response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
-                # FIXME switch to asserting by URL and course ID combo, not page ID
                 if role == Role.STUDENT:
                     self.assertEqual(response.status_code, 401)
-                    self.assert_single_page_does_not_exist_by_id(page_to_assert_against)
+                    self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
                 else:
                     # Should redirect to the new page
                     self.assertEqual(response.status_code, 302)
-                    self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
+                    self.assert_single_page_against_matching_course_id_and_url_in_db(page_to_assert_against)
 
             self.clear_all_enrollments()
 

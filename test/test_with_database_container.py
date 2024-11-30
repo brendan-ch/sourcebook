@@ -253,6 +253,26 @@ class TestWithDatabaseContainer(unittest.TestCase):
         constructed_page = Page(**result)
         self.assertEqual(constructed_page, page_to_update)
 
+    def assert_single_page_against_matching_course_id_and_url_in_db(self, page_to_update: Page):
+        get_page_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.course_id = %s
+            AND page.url_path_after_course_path = %s
+        '''
+        params = (page_to_update.course_id, page_to_update.url_path_after_course_path)
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+        constructed_page = Page(**result)
+        self.assertEqual(constructed_page, page_to_update)
+
     def assert_single_page_does_not_exist_by_id(self, nonexistent_page):
         get_page_query = '''
         SELECT page.page_id,
@@ -270,3 +290,23 @@ class TestWithDatabaseContainer(unittest.TestCase):
         cursor.execute(get_page_query, params)
         result = cursor.fetchone()
         self.assertIsNone(result)
+
+    def assert_single_page_does_not_exist_by_course_id_and_url(self, nonexistent_page: Page):
+        get_page_query = '''
+        SELECT page.page_id,
+            page.course_id,
+            page.created_by_user_id,
+            page.page_content,
+            page.page_title,
+            page.page_visibility_setting,
+            page.url_path_after_course_path
+        FROM page
+        WHERE page.course_id = %s
+            AND page.url_path_after_course_path = %s
+        '''
+        params = (nonexistent_page.course_id, nonexistent_page.url_path_after_course_path)
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(get_page_query, params)
+        result = cursor.fetchone()
+        self.assertIsNone(result)
+
