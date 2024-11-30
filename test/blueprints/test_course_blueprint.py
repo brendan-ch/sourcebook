@@ -415,9 +415,44 @@ This is the home page.
 
 
     def test_new_page_submission_for_different_roles(self):
-        # expected: page exists in DB and user directed to new page
-        # for students, 401 error
-        pass
+        # TODO move role testing into method which takes callback?
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        # Note that values are passed as strings in form
+        # even when defined as ints here
+        sample_page_dictionary = {
+            "page_title": "Office Hours",
+            "page_content": self.static_page_content_for_testing,
+            "page_visibility_setting": VisibilitySetting.LISTED.value,
+            "course_id": course.course_id,
+            "url_path_after_course_path": "/office-hours"
+        }
+        page_to_assert_against = Page(**sample_page_dictionary)
+
+        self.sign_user_into_session(user)
+
+        roles = list(Role)
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(
+                    user_id=user.user_id,
+                    course_id=course.course_id,
+                    role=role
+                )
+                self.add_single_enrollment(enrollment)
+
+                response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
+                if role == Role.STUDENT:
+                    self.assertEqual(response.status_code, 401)
+                    self.assert_single_page_does_not_exist_by_id(page_to_assert_against)
+                else:
+                    # Should redirect to the new page
+                    self.assertEqual(response.status_code, 302)
+                    self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
+
+            self.clear_all_enrollments()
 
     def test_new_page_submission_with_conflicting_url(self):
         # expected: 400 error
