@@ -389,3 +389,20 @@ This is the home page.
                     # TODO write assertions
 
             self.clear_all_enrollments()
+
+    def test_new_page_submission_for_different_roles(self):
+        # expected: page exists in DB and user directed to new page
+        # for students, 401 error
+        pass
+
+    def test_new_page_submission_with_conflicting_url(self):
+        # expected: 400 error
+        pass
+
+    def test_new_page_submission_with_id(self):
+        # expected: 400 error
+        pass
+
+    def test_new_page_submission_with_missing_data(self):
+        # expected: 400 error
+        pass
