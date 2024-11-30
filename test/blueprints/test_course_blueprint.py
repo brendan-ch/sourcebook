@@ -11,6 +11,8 @@ from models.user import User
 from test.test_flask_app import TestFlaskApp
 
 
+
+
 class TestCourseBlueprint(TestFlaskApp):
     static_page_content_for_testing = """
 # Home Page
@@ -29,6 +31,15 @@ This is the home page.
 - [Assignments](/assignments)
 - [Chapman Course Catalog](https://catalog.chapman.edu)
 """
+    def generate_sample_page_dictionary(self, course: Course):
+        return {
+            "page_title": "Office Hours",
+            "page_content": self.static_page_content_for_testing,
+            "page_visibility_setting": VisibilitySetting.LISTED.value,
+            "course_id": course.course_id,
+            "url_path_after_course_path": "/office-hours"
+        }
+
     def assert_course_layout_content(self, response: Response, course: Course, user: User, role: Optional[Role] = None):
         # Check reused layout content for the course
         # Future work:
@@ -422,13 +433,7 @@ This is the home page.
 
         # Note that values are passed as strings in form
         # even when defined as ints here
-        sample_page_dictionary = {
-            "page_title": "Office Hours",
-            "page_content": self.static_page_content_for_testing,
-            "page_visibility_setting": VisibilitySetting.LISTED.value,
-            "course_id": course.course_id,
-            "url_path_after_course_path": "/office-hours"
-        }
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
         page_to_assert_against = Page(**sample_page_dictionary)
 
         self.sign_user_into_session(user)
@@ -463,13 +468,7 @@ This is the home page.
 
         # Note that values are passed as strings in form
         # even when defined as ints here
-        sample_page_dictionary = {
-            "page_title": "Office Hours",
-            "page_content": self.static_page_content_for_testing,
-            "page_visibility_setting": VisibilitySetting.LISTED.value,
-            "course_id": course.course_id,
-            "url_path_after_course_path": "/office-hours"
-        }
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
         page_to_assert_against = Page(**sample_page_dictionary)
 
         # Insert the page first
@@ -490,10 +489,11 @@ This is the home page.
                 response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
                 if role == Role.STUDENT:
                     self.assertEqual(response.status_code, 401)
-                    self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
                 else:
                     self.assertEqual(response.status_code, 400)
-                    self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
+
+                # Page should remain unchanged
+                self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
 
             self.clear_all_enrollments()
 
