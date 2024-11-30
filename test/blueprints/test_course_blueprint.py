@@ -460,7 +460,6 @@ This is the home page.
             self.clear_all_enrollments()
 
     def test_new_page_submission_with_conflicting_url(self):
-        # expected: 400 error
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
@@ -497,8 +496,38 @@ This is the home page.
             self.clear_all_enrollments()
 
     def test_new_page_submission_with_id(self):
-        # expected: 400 error
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        # Note that values are passed as strings in form
+        # even when defined as ints here
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        sample_page_dictionary["page_id"] = 1
+        page_to_assert_against = Page(**sample_page_dictionary)
+
+        self.sign_user_into_session(user)
+
+        roles = list(Role)
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(
+                    user_id=user.user_id,
+                    course_id=course.course_id,
+                    role=role
+                )
+                self.add_single_enrollment(enrollment)
+
+                response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
+
+                if role == Role.STUDENT:
+                    self.assertEqual(response.status_code, 401)
+                else:
+                    self.assertEqual(response.status_code, 400)
+
+                self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
+
+            self.clear_all_enrollments()
 
     def test_new_page_submission_with_missing_data(self):
         # expected: 400 error
