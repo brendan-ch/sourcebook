@@ -47,43 +47,6 @@ Embark on your journey into the exciting world of game development today!
             created_by_user_id=created_by_user_id,
         )
 
-    def assert_single_page_against_matching_id_page_in_db(self, page_to_update):
-        get_page_query = '''
-        SELECT page.page_id,
-            page.course_id,
-            page.created_by_user_id,
-            page.page_content,
-            page.page_title,
-            page.page_visibility_setting,
-            page.url_path_after_course_path
-        FROM page
-        WHERE page.page_id = %s
-        '''
-        params = (page_to_update.page_id,)
-        cursor = self.connection.cursor(dictionary=True)
-        cursor.execute(get_page_query, params)
-        result = cursor.fetchone()
-        constructed_page = Page(**result)
-        self.assertEqual(constructed_page, page_to_update)
-
-    def assert_single_page_does_not_exist_by_id(self, nonexistent_page):
-        get_page_query = '''
-        SELECT page.page_id,
-            page.course_id,
-            page.created_by_user_id,
-            page.page_content,
-            page.page_title,
-            page.page_visibility_setting,
-            page.url_path_after_course_path
-        FROM page
-        WHERE page.page_id = %s
-        '''
-        params = (nonexistent_page.page_id,)
-        cursor = self.connection.cursor(dictionary=True)
-        cursor.execute(get_page_query, params)
-        result = cursor.fetchone()
-        self.assertIsNone(result)
-
     def test_add_new_page_and_get_id(self):
         # For a course to exist it must be linked to a course,
         # and it *may* be linked to a user
