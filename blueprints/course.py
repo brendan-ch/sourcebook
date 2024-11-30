@@ -127,3 +127,8 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
     # TODO render edit page
     return f"Edit page for static path for {course_url}: {custom_static_path}"
 
+@course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
+def course_new_page(course_url: str):
+    # Should fully expect all values in form to be strings
+    return f"New page UI"
+
