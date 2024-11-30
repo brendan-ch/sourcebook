@@ -355,3 +355,37 @@ This is the home page.
         self.assert_course_layout_content(response, course, user)
 
         self.assert_static_page_content_with_links(course, response)
+
+    def test_new_page_rendering_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        roles = list(Role)
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(
+                    user_id=user.user_id,
+                    course_id=course.course_id,
+                    role=role
+                )
+                self.add_single_enrollment(enrollment)
+
+                response = self.test_client.get(course.starting_url_path + "/new/")
+                self.assert_course_layout_content(response, course, user, role)
+                if role == Role.STUDENT:
+                    self.assertEqual(response.status_code, 401)
+                else:
+                    soup = BeautifulSoup(response.data, "html.parser")
+                    # Assert there is a button to submit the new page as a form
+                    # Assert there is a textarea to input Markdown content
+                    # Assert that there is input for:
+                    # - the URL path (text input)
+                    # - the visibility (<select> dropdown)
+                    # - the title (text input)
+                    # - the content
+                    # TODO write assertions
+
+            self.clear_all_enrollments()
