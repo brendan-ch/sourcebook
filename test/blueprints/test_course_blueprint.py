@@ -56,6 +56,36 @@ This is the home page.
         else:
             self.assertIsNone(new_page_button)
 
+    def assert_edit_page_content(self, response):
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        title_input = soup.find("input", id="title")
+        self.assertIsNotNone(title_input)
+        self.assertIn("required", title_input.attrs)
+
+        url_input = soup.find("input", id="url")
+        self.assertIsNotNone(url_input)
+        self.assertIn("required", url_input.attrs)
+
+        visibility_select = soup.find("select", id="visibility")
+        self.assertIsNotNone(visibility_select)
+        self.assertIn("required", visibility_select.attrs)
+
+        options = visibility_select.find_all("option")
+        self.assertEqual(len(options), 3)
+        self.assertEqual(options[0].attrs["value"], "2")
+        self.assertEqual(options[0].string, "Listed")
+        self.assertEqual(options[1].attrs["value"], "1")
+        self.assertEqual(options[1].string, "Unlisted")
+        self.assertEqual(options[2].attrs["value"], "0")
+        self.assertEqual(options[2].string, "Hidden")
+
+        content_textarea = soup.find("textarea", id="content")
+        self.assertIsNotNone(content_textarea)
+
+        submit_button = soup.find("button", type="submit")
+        self.assertIsNotNone(submit_button)
+
     def assert_static_page_main_content(self, response):
         soup = BeautifulSoup(response.data, "html.parser")
         soup = soup.main
@@ -379,36 +409,10 @@ This is the home page.
                     self.assertEqual(response.status_code, 401)
                 else:
                     self.assertEqual(response.status_code, 200)
-                    soup = BeautifulSoup(response.data, "html.parser")
-
-                    title_input = soup.find("input", id="title")
-                    self.assertIsNotNone(title_input)
-                    self.assertIn("required", title_input.attrs)
-
-                    url_input = soup.find("input", id="url")
-                    self.assertIsNotNone(url_input)
-                    self.assertIn("required", url_input.attrs)
-
-                    visibility_select = soup.find("select", id="visibility")
-                    self.assertIsNotNone(visibility_select)
-                    self.assertIn("required", visibility_select.attrs)
-
-                    options = visibility_select.find_all("option")
-                    self.assertEqual(len(options), 3)
-                    self.assertEqual(options[0].attrs["value"], "2")
-                    self.assertEqual(options[0].string, "Listed")
-                    self.assertEqual(options[1].attrs["value"], "1")
-                    self.assertEqual(options[1].string, "Unlisted")
-                    self.assertEqual(options[2].attrs["value"], "0")
-                    self.assertEqual(options[2].string, "Hidden")
-
-                    content_textarea = soup.find("textarea", id="content")
-                    self.assertIsNotNone(content_textarea)
-
-                    submit_button = soup.find("button", type="submit")
-                    self.assertIsNotNone(submit_button)
+                    self.assert_edit_page_content(response)
 
             self.clear_all_enrollments()
+
 
     def test_new_page_submission_for_different_roles(self):
         # expected: page exists in DB and user directed to new page
