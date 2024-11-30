@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 from bs4 import BeautifulSoup
 from flask import Response, session
@@ -28,7 +29,7 @@ This is the home page.
 - [Assignments](/assignments)
 - [Chapman Course Catalog](https://catalog.chapman.edu)
 """
-    def assert_course_layout_content(self, response: Response, course: Course, user: User):
+    def assert_course_layout_content(self, response: Response, course: Course, user: User, role: Optional[Role] = None):
         # Check reused layout content for the course
         # Future work:
         # - pages that should be visible in navigation (future)
@@ -47,6 +48,13 @@ This is the home page.
 
         full_name_text = soup.find(string=re.compile(user.full_name))
         self.assertIsNotNone(full_name_text)
+
+        new_page_button = soup.find(string=re.compile("new page", re.IGNORECASE))
+        if role and (role == Role.ASSISTANT or role == Role.PROFESSOR):
+            self.assertIsNotNone(new_page_button)
+            self.assertEqual(new_page_button.attrs["href"], "/new")
+        else:
+            self.assertIsNone(new_page_button)
 
     def assert_static_page_main_content(self, response):
         soup = BeautifulSoup(response.data, "html.parser")
@@ -71,6 +79,33 @@ This is the home page.
 
         course_catalog_link = soup.find("a", string=re.compile("Chapman Course Catalog"))
         self.assertEqual(course_catalog_link.attrs["href"], "https://catalog.chapman.edu")
+
+    def test_new_page_button_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        roles = list(Role)
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(
+                    user_id=user.user_id,
+                    course_id=course.course_id,
+                    role=role
+                )
+                self.add_single_enrollment(enrollment)
+
+                response = self.test_client.get(course.starting_url_path + "/")
+                self.assert_course_layout_content(response, course, user, role)
+
+            delete_query = '''
+            DELETE FROM enrollment;
+            '''
+            cursor = self.connection.cursor()
+            cursor.execute(delete_query)
+            self.connection.commit()
 
     def test_course_home_page_content_with_relative_urls(self):
         user, _ = self.add_sample_user_to_test_db()
