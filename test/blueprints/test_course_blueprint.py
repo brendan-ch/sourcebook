@@ -378,15 +378,35 @@ This is the home page.
                 if role == Role.STUDENT:
                     self.assertEqual(response.status_code, 401)
                 else:
+                    self.assertEqual(response.status_code, 200)
                     soup = BeautifulSoup(response.data, "html.parser")
-                    # Assert there is a button to submit the new page as a form
-                    # Assert there is a textarea to input Markdown content
-                    # Assert that there is input for:
-                    # - the URL path (text input)
-                    # - the visibility (<select> dropdown)
-                    # - the title (text input)
-                    # - the content
-                    # TODO write assertions
+
+                    title_input = soup.find("input", id="title")
+                    self.assertIsNotNone(title_input)
+                    self.assertIn("required", title_input.attrs)
+
+                    url_input = soup.find("input", id="url")
+                    self.assertIsNotNone(url_input)
+                    self.assertIn("required", url_input.attrs)
+
+                    visibility_select = soup.find("select", id="visibility")
+                    self.assertIsNotNone(visibility_select)
+                    self.assertIn("required", visibility_select.attrs)
+
+                    options = visibility_select.find_all("option")
+                    self.assertEqual(len(options), 3)
+                    self.assertEqual(options[0].attrs["value"], "2")
+                    self.assertEqual(options[0].string, "Listed")
+                    self.assertEqual(options[1].attrs["value"], "1")
+                    self.assertEqual(options[1].string, "Unlisted")
+                    self.assertEqual(options[2].attrs["value"], "0")
+                    self.assertEqual(options[2].string, "Hidden")
+
+                    content_textarea = soup.find("textarea", id="content")
+                    self.assertIsNotNone(content_textarea)
+
+                    submit_button = soup.find("button", type="submit")
+                    self.assertIsNotNone(submit_button)
 
             self.clear_all_enrollments()
 
