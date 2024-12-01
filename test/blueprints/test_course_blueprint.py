@@ -96,15 +96,15 @@ This is the home page.
     def assert_edit_page_content(self, response):
         soup = BeautifulSoup(response.data, "html.parser")
 
-        title_input = soup.find("input", id="title")
+        title_input = soup.find("input", id="page_title")
         self.assertIsNotNone(title_input)
         self.assertIn("required", title_input.attrs)
 
-        url_input = soup.find("input", id="url")
+        url_input = soup.find("input", id="url_path_after_course_path")
         self.assertIsNotNone(url_input)
         self.assertIn("required", url_input.attrs)
 
-        visibility_select = soup.find("select", id="visibility")
+        visibility_select = soup.find("select", id="page_visibility_setting")
         self.assertIsNotNone(visibility_select)
         self.assertIn("required", visibility_select.attrs)
 
@@ -117,7 +117,7 @@ This is the home page.
         self.assertEqual(options[2].attrs["value"], "0")
         self.assertEqual(options[2].string, "Hidden")
 
-        content_textarea = soup.find("textarea", id="content")
+        content_textarea = soup.find("textarea", id="page_content")
         self.assertIsNotNone(content_textarea)
 
         submit_button = soup.find("button", type="submit")
