@@ -524,26 +524,28 @@ This is the home page.
         )
 
 
-    def test_new_page_submission_with_missing_data(self):
+    def test_new_page_submission_with_missing_required_data(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
         sample_page_dictionary = self.generate_sample_page_dictionary(course)
         page_to_assert_against = Page(**sample_page_dictionary)
-        sample_page_dictionary["page_title"] = None
-        # TODO test other data types after refactoring
 
         self.sign_user_into_session(user)
 
-        assertion_callback = self.generate_nonexistence_assertion_callback(
-            course=course,
-            page_to_assert_against=page_to_assert_against,
-            page_dictionary=sample_page_dictionary,
-        )
-        self.execute_assertions_callback_based_on_roles_and_enrollment(
-            user=user,
-            course=course,
-            callback=assertion_callback,
-        )
+        required_data_types = ["page_title", "course_id", "url_path_after_course_path", "page_visibility_setting"]
+        for required_data_type in required_data_types:
+            with self.subTest(required_data_type=required_data_type):
+                sample_page_dictionary[required_data_type] = None
 
+                assertion_callback = self.generate_nonexistence_assertion_callback(
+                    course=course,
+                    page_to_assert_against=page_to_assert_against,
+                    page_dictionary=sample_page_dictionary,
+                )
+                self.execute_assertions_callback_based_on_roles_and_enrollment(
+                    user=user,
+                    course=course,
+                    callback=assertion_callback,
+                )
