@@ -11,8 +11,6 @@ from models.user import User
 from test.test_flask_app import TestFlaskApp
 
 
-
-
 class TestCourseBlueprint(TestFlaskApp):
     static_page_content_for_testing = """
 # Home Page
@@ -128,20 +126,15 @@ This is the home page.
 
         self.sign_user_into_session(user)
 
-        roles = list(Role)
-        for role in roles:
-            with self.subTest(role=role):
-                enrollment = CourseEnrollment(
-                    user_id=user.user_id,
-                    course_id=course.course_id,
-                    role=role
-                )
-                self.add_single_enrollment(enrollment)
+        def assertion_callback(role: Role):
+            response = self.test_client.get(course.starting_url_path + "/")
+            self.assert_course_layout_content(response, course, user, role)
 
-                response = self.test_client.get(course.starting_url_path + "/")
-                self.assert_course_layout_content(response, course, user, role)
-
-            self.clear_all_enrollments()
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            course=course,
+            user=user,
+            callback=assertion_callback,
+        )
 
     def test_course_home_page_content_with_relative_urls(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -404,29 +397,22 @@ This is the home page.
 
         self.sign_user_into_session(user)
 
-        roles = list(Role)
-        for role in roles:
-            with self.subTest(role=role):
-                enrollment = CourseEnrollment(
-                    user_id=user.user_id,
-                    course_id=course.course_id,
-                    role=role
-                )
-                self.add_single_enrollment(enrollment)
+        def assertion_callback(role: Role):
+            response = self.test_client.get(course.starting_url_path + "/new/")
+            self.assert_course_layout_content(response, course, user, role)
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 200)
+                self.assert_edit_page_content(response)
 
-                response = self.test_client.get(course.starting_url_path + "/new/")
-                self.assert_course_layout_content(response, course, user, role)
-                if role == Role.STUDENT:
-                    self.assertEqual(response.status_code, 401)
-                else:
-                    self.assertEqual(response.status_code, 200)
-                    self.assert_edit_page_content(response)
-
-            self.clear_all_enrollments()
-
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
 
     def test_new_page_submission_for_different_roles(self):
-        # TODO move role testing into method which takes callback?
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
@@ -438,26 +424,21 @@ This is the home page.
 
         self.sign_user_into_session(user)
 
-        roles = list(Role)
-        for role in roles:
-            with self.subTest(role=role):
-                enrollment = CourseEnrollment(
-                    user_id=user.user_id,
-                    course_id=course.course_id,
-                    role=role
-                )
-                self.add_single_enrollment(enrollment)
+        def assertion_callback(role: Role):
+            response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+                self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
+            else:
+                # Should redirect to the new page
+                self.assertEqual(response.status_code, 302)
+                self.assert_single_page_against_matching_course_id_and_url_in_db(page_to_assert_against)
 
-                response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
-                if role == Role.STUDENT:
-                    self.assertEqual(response.status_code, 401)
-                    self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
-                else:
-                    # Should redirect to the new page
-                    self.assertEqual(response.status_code, 302)
-                    self.assert_single_page_against_matching_course_id_and_url_in_db(page_to_assert_against)
-
-            self.clear_all_enrollments()
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
 
     def test_new_page_submission_with_conflicting_url(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -474,26 +455,21 @@ This is the home page.
 
         self.sign_user_into_session(user)
 
-        roles = list(Role)
-        for role in roles:
-            with self.subTest(role=role):
-                enrollment = CourseEnrollment(
-                    user_id=user.user_id,
-                    course_id=course.course_id,
-                    role=role
-                )
-                self.add_single_enrollment(enrollment)
+        def assertion_callback(role: Role):
+            response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 400)
 
-                response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
-                if role == Role.STUDENT:
-                    self.assertEqual(response.status_code, 401)
-                else:
-                    self.assertEqual(response.status_code, 400)
+            # Page should remain unchanged
+            self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
 
-                # Page should remain unchanged
-                self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
-
-            self.clear_all_enrollments()
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
 
     def test_new_page_submission_with_id(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -508,26 +484,17 @@ This is the home page.
 
         self.sign_user_into_session(user)
 
-        roles = list(Role)
-        for role in roles:
-            with self.subTest(role=role):
-                enrollment = CourseEnrollment(
-                    user_id=user.user_id,
-                    course_id=course.course_id,
-                    role=role
-                )
-                self.add_single_enrollment(enrollment)
+        assertion_callback = self.generate_nonexistence_assertion_callback(
+            course=course,
+            page_to_assert_against=page_to_assert_against,
+            page_dictionary=sample_page_dictionary,
+        )
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
 
-                response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
-
-                if role == Role.STUDENT:
-                    self.assertEqual(response.status_code, 401)
-                else:
-                    self.assertEqual(response.status_code, 400)
-
-                self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
-
-            self.clear_all_enrollments()
 
     def test_new_page_submission_with_missing_data(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -541,6 +508,18 @@ This is the home page.
 
         self.sign_user_into_session(user)
 
+        assertion_callback = self.generate_nonexistence_assertion_callback(
+            course=course,
+            page_to_assert_against=page_to_assert_against,
+            page_dictionary=sample_page_dictionary,
+        )
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
+
+    def execute_assertions_callback_based_on_roles_and_enrollment(self, user: User, course: Course, callback):
         roles = list(Role)
         for role in roles:
             with self.subTest(role=role):
@@ -551,13 +530,20 @@ This is the home page.
                 )
                 self.add_single_enrollment(enrollment)
 
-                response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
-
-                if role == Role.STUDENT:
-                    self.assertEqual(response.status_code, 401)
-                else:
-                    self.assertEqual(response.status_code, 400)
-
-                self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
+                callback(role)
 
             self.clear_all_enrollments()
+
+    def generate_nonexistence_assertion_callback(self, course: Course, page_dictionary: dict, page_to_assert_against: Page):
+        def callback(role: Role):
+            response = self.test_client.post(course.starting_url_path + "/new/", data=page_dictionary)
+
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 400)
+
+            self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
+
+        return callback
+
