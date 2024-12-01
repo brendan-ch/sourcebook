@@ -29,6 +29,19 @@ This is the home page.
 - [Assignments](/assignments)
 - [Chapman Course Catalog](https://catalog.chapman.edu)
 """
+    def generate_nonexistence_assertion_callback(self, course: Course, page_dictionary: dict, page_to_assert_against: Page):
+        def callback(role: Role):
+            response = self.test_client.post(course.starting_url_path + "/new/", data=page_dictionary)
+
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 400)
+
+            self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
+
+        return callback
+
     def generate_sample_page_dictionary(self, course: Course):
         return {
             "page_title": "Office Hours",
@@ -37,6 +50,21 @@ This is the home page.
             "course_id": course.course_id,
             "url_path_after_course_path": "/office-hours"
         }
+
+    def execute_assertions_callback_based_on_roles_and_enrollment(self, user: User, course: Course, callback):
+        roles = list(Role)
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(
+                    user_id=user.user_id,
+                    course_id=course.course_id,
+                    role=role
+                )
+                self.add_single_enrollment(enrollment)
+
+                callback(role)
+
+            self.clear_all_enrollments()
 
     def assert_course_layout_content(self, response: Response, course: Course, user: User, role: Optional[Role] = None):
         # Check reused layout content for the course
@@ -518,32 +546,4 @@ This is the home page.
             course=course,
             callback=assertion_callback,
         )
-
-    def execute_assertions_callback_based_on_roles_and_enrollment(self, user: User, course: Course, callback):
-        roles = list(Role)
-        for role in roles:
-            with self.subTest(role=role):
-                enrollment = CourseEnrollment(
-                    user_id=user.user_id,
-                    course_id=course.course_id,
-                    role=role
-                )
-                self.add_single_enrollment(enrollment)
-
-                callback(role)
-
-            self.clear_all_enrollments()
-
-    def generate_nonexistence_assertion_callback(self, course: Course, page_dictionary: dict, page_to_assert_against: Page):
-        def callback(role: Role):
-            response = self.test_client.post(course.starting_url_path + "/new/", data=page_dictionary)
-
-            if role == Role.STUDENT:
-                self.assertEqual(response.status_code, 401)
-            else:
-                self.assertEqual(response.status_code, 400)
-
-            self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
-
-        return callback
 
