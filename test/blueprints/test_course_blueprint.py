@@ -427,10 +427,10 @@ This is the home page.
 
         def assertion_callback(role: Role):
             response = self.test_client.get(course.starting_url_path + "/new/")
-            self.assert_course_layout_content(response, course, user, role)
             if role == Role.STUDENT:
                 self.assertEqual(response.status_code, 401)
             else:
+                self.assert_course_layout_content(response, course, user, role)
                 self.assertEqual(response.status_code, 200)
                 self.assert_edit_page_content(response)
 
