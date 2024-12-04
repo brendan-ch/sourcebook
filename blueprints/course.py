@@ -3,7 +3,7 @@ import urllib.parse
 
 import markdown2
 from bs4 import BeautifulSoup
-from flask import Blueprint, render_template, session, abort
+from flask import Blueprint, render_template, session, abort, request, redirect
 
 from flask_helpers import get_user_from_session
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
@@ -57,6 +57,46 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
         role=role,
         page_html_content=page_html_content,
     )
+
+@course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
+def course_create_new_page(course_url: str):
+    user = get_user_from_session()
+    course_repo = get_course_repository()
+
+    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
+    if not course:
+        return render_template("404.html"), 404
+
+    role = None
+    if user:
+        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
+
+    if not role or role == Role.STUDENT:
+        return render_template(
+            "401.html",
+            custom_error_message="You need to be an editor to use this endpoint."
+        ), 401
+
+    if request.method == "GET":
+        return render_template(
+            "course_edit_page.html",
+            user=user,
+            role=role,
+            course=course,
+        )
+    else:
+        page_dictionary = dict(request.form)
+
+        try:
+            # TODO add more robust validation/conversion into Page model
+            page_to_insert = Page(**page_dictionary)
+            content_repo = get_content_repository()
+            page_to_insert.page_id = content_repo.add_new_page_and_get_id(page_to_insert)
+
+            return redirect(course.starting_url_path + page_to_insert.url_path_after_course_path)
+        except ValueError as e:
+            # TODO return the user to the same page, but with error
+            return "ValueError", 400
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 def course_home_page(course_url: str):
@@ -126,9 +166,4 @@ def course_custom_static_url_page(course_url: str, custom_static_path: str):
 def course_custom_static_url_edit_page(course_url: str, custom_static_path: str):
     # TODO render edit page
     return f"Edit page for static path for {course_url}: {custom_static_path}"
-
-@course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
-def course_new_page(course_url: str):
-    # Should fully expect all values in form to be strings
-    return f"New page UI"
 

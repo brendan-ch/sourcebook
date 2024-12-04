@@ -1,0 +1,123 @@
+{% extends "course_layout.html" %}
+{% block header %}
+    {{ super() }}
+    <style>
+        .top-navigation-bar {
+            display: none;
+        }
+
+        .portrait-nav {
+            display: none;
+        }
+
+        .grow-wrap {
+            /* easy way to plop the elements on top of each other and have them both sized based on the tallest one's height */
+            display: grid;
+        }
+
+        .grow-wrap::after {
+            /* Note the weird space! Needed to prevent jumpy behavior */
+            content: attr(data-replicated-value) " ";
+            /* This is how textarea text behaves */
+            white-space: pre-wrap;
+            /* Hidden from view, clicks, and screen readers */
+            visibility: hidden;
+        }
+
+        .grow-wrap>textarea {
+            /* You could leave this, but after a user resizes, then it ruins the auto sizing */
+            resize: none;
+            /* Firefox shows scrollbar on growth, you can hide like this. */
+            overflow: hidden;
+
+            min-height: 16em;
+        }
+
+        .grow-wrap>textarea,
+        .grow-wrap::after {
+            /* Identical styling required!! */
+            border: 1px solid black;
+            padding: 0.5rem;
+            font: inherit;
+            /* Place on top of each other */
+            grid-area: 1 / 1 / 2 / 2;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .edit-button-group {
+            display: flex;
+            flex-direction: row;
+            gap: 1em;
+            padding: 0 1em;
+        }
+
+        .additional-attributes {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .additional-attributes-input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .limited-width {
+            max-width: 16em;
+        }
+    </style>
+{% endblock %}
+{% block body %}
+    {{ super() }}
+    <form
+        class="main-wrapper"
+        method="POST"
+        action="{{ course.starting_url_path }}/new"
+        enctype="multipart/form-data"
+    >
+        <div class="bar-above-main-content edit-bar">
+            <div class="edit-button-group">
+                <button>Discard</button>
+                <button type="submit">Save</button>
+            </div>
+        </div>
+        <main>
+            <div class="additional-attributes">
+                <div class="additional-attributes-input-group limited-width">
+                    <label for="page_title">Title</label>
+                    <input id="page_title" name="page_title" type="text" required >
+                </div>
+                <div class="additional-attributes-input-group limited-width">
+                    <label for="url_path_after_course_path">URL path</label>
+                    <input
+                        id="url_path_after_course_path"
+                        name="url_path_after_course_path"
+                        type="text"
+                        placeholder="e.g. /office-hours"
+                        required
+                    >
+                </div>
+                <div class="additional-attributes-input-group limited-width">
+                    <label for="page_visibility_setting">Visibility</label>
+                    <select id="page_visibility_setting" name="page_visibility_setting" required>
+                        <option value="2">Listed</option>
+                        <option value="1">Unlisted</option>
+                        <option value="0">Hidden</option>
+                    </select>
+                </div>
+                <div class="additional-attributes-input-group">
+                    <label for="page_content">Content</label>
+                    <div class="grow-wrap">
+                        <textarea name="page_content" id="page_content" onInput="this.parentNode.dataset.replicatedValue = this.value"></textarea>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </form>
+{% endblock %}
+
