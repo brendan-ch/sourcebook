@@ -86,10 +86,10 @@ This is the home page.
         full_name_text = soup.find(string=re.compile(user.full_name))
         self.assertIsNotNone(full_name_text)
 
-        new_page_button = soup.find(string=re.compile("new page", re.IGNORECASE))
+        new_page_button = soup.find("a", string=re.compile("new page", re.IGNORECASE))
         if role and (role == Role.ASSISTANT or role == Role.PROFESSOR):
             self.assertIsNotNone(new_page_button)
-            self.assertEqual(new_page_button.attrs["href"], "/new")
+            self.assertEqual(new_page_button.attrs["href"], f"{course.starting_url_path}/new")
         else:
             self.assertIsNone(new_page_button)
 
