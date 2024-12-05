@@ -23,6 +23,7 @@ class Page:
     page_id: Optional[int] = None
 
     def __post_init__(self):
+        # TODO add URL validation
         # Attempt to auto-convert, and throws an obvious error if it fails
         if not isinstance(self.page_visibility_setting, VisibilitySetting):
             self.page_visibility_setting = VisibilitySetting(int(self.page_visibility_setting))
