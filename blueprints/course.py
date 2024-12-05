@@ -5,6 +5,7 @@ import markdown2
 from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, session, abort, request, redirect
 
+from custom_exceptions import AlreadyExistsException
 from flask_helpers import get_user_from_session
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
 from models.course import Course
@@ -96,6 +97,8 @@ def course_create_new_page(course_url: str):
         except ValueError as e:
             # TODO return the user to the same page, but with error
             return "ValueError", 400
+        except AlreadyExistsException as e:
+            return "AlreadyExistsException", 400
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 def course_home_page(course_url: str):
