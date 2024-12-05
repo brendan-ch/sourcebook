@@ -3,7 +3,7 @@ import urllib.parse
 
 import markdown2
 from bs4 import BeautifulSoup
-from flask import Blueprint, render_template, session, abort, request, redirect
+from flask import Blueprint, render_template, session, abort, request, redirect, current_app
 
 from custom_exceptions import AlreadyExistsException
 from flask_helpers import get_user_from_session
@@ -96,11 +96,14 @@ def course_create_new_page(course_url: str):
             return redirect(course.starting_url_path + page_to_insert.url_path_after_course_path)
         except ValueError as e:
             # TODO return the user to the same page, but with error
+            current_app.logger.exception(e)
             return "ValueError", 400
         except AlreadyExistsException as e:
+            current_app.logger.exception(e)
             return "AlreadyExistsException", 400
-        except TypeError:
+        except TypeError as e:
             # Something happened when constructing the Page object
+            current_app.logger.exception(e)
             return "TypeError", 400
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
