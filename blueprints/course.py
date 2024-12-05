@@ -94,17 +94,37 @@ def course_create_new_page(course_url: str):
             page_to_insert.page_id = content_repo.add_new_page_and_get_id(page_to_insert)
 
             return redirect(course.starting_url_path + page_to_insert.url_path_after_course_path)
+
+        # TODO create test cases for each error type
+        # TODO PLEASE give better error messages, these are super vague right now
         except ValueError as e:
-            # TODO return the user to the same page, but with error
             current_app.logger.exception(e)
-            return "ValueError", 400
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="Couldn't convert one of the attributes into the correct type."
+            ), 400
         except AlreadyExistsException as e:
             current_app.logger.exception(e)
-            return "AlreadyExistsException", 400
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="There is already a page with that URL in this course. Please try again with a different URL."
+            ), 400
         except TypeError as e:
             # Something happened when constructing the Page object
             current_app.logger.exception(e)
-            return "TypeError", 400
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="There was an issue parsing your response. Please try again later."
+            ), 400
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 def course_home_page(course_url: str):
