@@ -575,3 +575,17 @@ This is the home page.
                     course=course,
                     callback=assertion_callback,
                 )
+
+    def test_edit_page_rendering_for_different_roles(self):
+        pass
+
+    def test_edit_page_submission_for_different_roles(self):
+        pass
+
+    def test_edit_page_submission_with_conflicting_url(self):
+        pass
+
+    def test_edit_page_submission_with_missing_data(self):
+        # Includes ID this time
+        pass
+
