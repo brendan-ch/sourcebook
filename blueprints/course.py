@@ -192,6 +192,28 @@ def course_custom_static_url_page(course_url: str, custom_static_path: str):
 
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
 def course_custom_static_url_edit_page(course_url: str, custom_static_path: str):
-    # TODO render edit page
-    return f"Edit page for static path for {course_url}: {custom_static_path}"
+    user = get_user_from_session()
+    course_repo = get_course_repository()
+
+    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
+    if not course:
+        return render_template("404.html"), 404
+
+    role = None
+    if user:
+        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
+
+    if not role or role == Role.STUDENT:
+        return render_template(
+            "401.html",
+            custom_error_message="You need to be an editor to use this endpoint."
+        ), 401
+
+    if request.method == "GET":
+        return render_template(
+            "course_edit_page.html",
+            user=user,
+            role=role,
+            course=course,
+        )
 
