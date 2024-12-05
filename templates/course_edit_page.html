@@ -70,6 +70,11 @@
         .limited-width {
             max-width: 16em;
         }
+
+        .hidden-attributes {
+            width: 0;
+            height: 0;
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -87,6 +92,11 @@
             </div>
         </div>
         <main>
+            <div class="hidden-attributes">
+                {# Needed for the form, but hidden to the user #}
+                <label for="course_id"></label>
+                <input id="course_id" name="course_id" type="hidden" value="{{ course.course_id }}" >
+            </div>
             <div class="additional-attributes">
                 <div class="additional-attributes-input-group limited-width">
                     <label for="page_title">Title</label>
