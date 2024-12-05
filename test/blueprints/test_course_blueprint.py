@@ -97,6 +97,7 @@ This is the home page.
             self.assertIsNone(new_page_button)
 
     def assert_edit_page_content(self, response):
+        # TODO check if page content is pre-populated with page information
         soup = BeautifulSoup(response.data, "html.parser")
 
         title_input = soup.find("input", id="page_title")
@@ -577,7 +578,30 @@ This is the home page.
                 )
 
     def test_edit_page_rendering_for_different_roles(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        existing_page = Page(**sample_page_dictionary)
+        existing_page.page_id = self.add_single_page_and_get_id(existing_page)
+
+        def assertion_callback(role: Role):
+            response = self.test_client.get(course.starting_url_path + existing_page.url_path_after_course_path + "/edit/")
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assert_course_layout_content(response, course, user, role)
+                self.assertEqual(response.status_code, 200)
+                self.assert_edit_page_content(response)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
 
     def test_edit_page_submission_for_different_roles(self):
         pass
