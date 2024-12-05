@@ -603,8 +603,26 @@ This is the home page.
             callback=assertion_callback,
         )
 
-    def test_edit_page_if_page_does_not_exist(self):
-        pass
+    def test_edit_page_for_different_roles_if_page_does_not_exist(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        nonexistent_page = Page(**sample_page_dictionary)
+
+        def assertion_callback(_):
+            # Should return 404 even for students
+            response = self.test_client.get(course.starting_url_path + nonexistent_page.url_path_after_course_path + "/edit/")
+            self.assertEqual(response.status_code, 404)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
 
     def test_edit_page_submission_for_different_roles(self):
         user, _ = self.add_sample_user_to_test_db()
