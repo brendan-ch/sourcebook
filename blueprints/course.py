@@ -88,7 +88,6 @@ def course_create_new_page(course_url: str):
         page_dictionary = dict(request.form)
 
         try:
-            # TODO add more robust validation/conversion into Page model
             page_to_insert = Page(**page_dictionary)
             content_repo = get_content_repository()
             page_to_insert.page_id = content_repo.add_new_page_and_get_id(page_to_insert)
