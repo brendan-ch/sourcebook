@@ -99,6 +99,9 @@ def course_create_new_page(course_url: str):
             return "ValueError", 400
         except AlreadyExistsException as e:
             return "AlreadyExistsException", 400
+        except TypeError:
+            # Something happened when constructing the Page object
+            return "TypeError", 400
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 def course_home_page(course_url: str):
