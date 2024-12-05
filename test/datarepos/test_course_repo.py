@@ -185,14 +185,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
                 expected_result = False if role == Role.STUDENT else True
                 self.assertEqual(result, expected_result)
 
-            # Regardless of whether test fails or succeeds,
-            # clear enrollments
-            delete_query = '''
-            DELETE FROM enrollment;
-            '''
-            cursor = self.connection.cursor()
-            cursor.execute(delete_query)
-            self.connection.commit()
+            self.clear_all_enrollments()
 
     def test_check_if_user_has_editing_rights_if_not_enrolled(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -410,14 +403,7 @@ class TestCourseRepo(TestWithDatabaseContainer):
                 result = self.course_repo.get_user_role_in_class_if_exists(user.user_id, courses[0].course_id)
                 self.assertEqual(result, role)
 
-            # Regardless of whether test fails or succeeds,
-            # clear enrollments
-            delete_query = '''
-            DELETE FROM enrollment;
-            '''
-            cursor = self.connection.cursor()
-            cursor.execute(delete_query)
-            self.connection.commit()
+            self.clear_all_enrollments()
 
     def test_get_user_role_in_class_if_not_exists(self):
         user, _ = self.add_sample_user_to_test_db()

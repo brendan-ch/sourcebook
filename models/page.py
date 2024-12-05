@@ -23,5 +23,16 @@ class Page:
     page_id: Optional[int] = None
 
     def __post_init__(self):
-        if isinstance(self.page_visibility_setting, int):
-            self.page_visibility_setting = VisibilitySetting(self.page_visibility_setting)
+        # TODO add URL validation
+        # Attempt to auto-convert, and throws an obvious error if it fails
+        if not isinstance(self.page_visibility_setting, VisibilitySetting):
+            self.page_visibility_setting = VisibilitySetting(int(self.page_visibility_setting))
+
+        if not isinstance(self.course_id, int):
+            self.course_id = int(self.course_id)
+
+        if self.created_by_user_id and not isinstance(self.created_by_user_id, int):
+            self.created_by_user_id = int(self.created_by_user_id)
+
+        if self.page_id and not isinstance(self.page_id, int):
+            self.page_id = int(self.page_id)

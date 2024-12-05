@@ -176,6 +176,12 @@
         <p class="footer">
             Signed in as {{ user.full_name }} ({{ user.email }})
             <br>
+            {% if role.value == 2 or role.value == 3 %}
+                <a href="{{ course.starting_url_path }}/new">
+                    [New page]
+                </a>
+                <br>
+            {% endif %}
             <a href="/">
                 [View all classes]
             </a>
@@ -228,6 +234,12 @@
             <p class="footer">
                 Signed in as {{ user.full_name }} ({{ user.email }})
                 <br>
+                {% if role.value == 2 or role.value == 3 %}
+                    <a href="{{ course.starting_url_path }}/new">
+                        [New page]
+                    </a>
+                    <br>
+                {% endif %}
                 <a href="/">
                     [View all classes]
                 </a>

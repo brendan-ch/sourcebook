@@ -1,7 +1,8 @@
 import re
+from typing import Optional
 
 from bs4 import BeautifulSoup
-from flask import Response, session
+from flask import Response
 
 from models.course import Course
 from models.course_enrollment import CourseEnrollment, Role
@@ -28,7 +29,47 @@ This is the home page.
 - [Assignments](/assignments)
 - [Chapman Course Catalog](https://catalog.chapman.edu)
 """
-    def assert_course_layout_content(self, response: Response, course: Course, user: User):
+    def generate_nonexistence_assertion_callback(self, course: Course, page_dictionary: dict, page_to_assert_against: Page):
+        def callback(role: Role):
+            response = self.test_client.post(course.starting_url_path + "/new/", data=page_dictionary)
+
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 400)
+
+            self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
+
+        return callback
+
+    def generate_sample_page_dictionary(self, course: Course):
+        return {
+            "page_title": "Office Hours",
+            "page_content": self.static_page_content_for_testing,
+            "page_visibility_setting": VisibilitySetting.LISTED.value,
+            "course_id": course.course_id,
+            "url_path_after_course_path": "/office-hours"
+        }
+
+    def execute_assertions_callback_based_on_roles_and_enrollment(self, user: User, course: Course, callback, cleanup_callbacks = []):
+        roles = list(Role)
+        for role in roles:
+            with self.subTest(role=role):
+                enrollment = CourseEnrollment(
+                    user_id=user.user_id,
+                    course_id=course.course_id,
+                    role=role
+                )
+                self.add_single_enrollment(enrollment)
+
+                callback(role)
+
+            self.clear_all_enrollments()
+
+            for cleanup_callback in cleanup_callbacks:
+                cleanup_callback()
+
+    def assert_course_layout_content(self, response: Response, course: Course, user: User, role: Optional[Role] = None):
         # Check reused layout content for the course
         # Future work:
         # - pages that should be visible in navigation (future)
@@ -47,6 +88,43 @@ This is the home page.
 
         full_name_text = soup.find(string=re.compile(user.full_name))
         self.assertIsNotNone(full_name_text)
+
+        new_page_button = soup.find("a", string=re.compile("new page", re.IGNORECASE))
+        if role and (role == Role.ASSISTANT or role == Role.PROFESSOR):
+            self.assertIsNotNone(new_page_button)
+            self.assertEqual(new_page_button.attrs["href"], f"{course.starting_url_path}/new")
+        else:
+            self.assertIsNone(new_page_button)
+
+    def assert_edit_page_content(self, response):
+        soup = BeautifulSoup(response.data, "html.parser")
+
+        title_input = soup.find("input", id="page_title")
+        self.assertIsNotNone(title_input)
+        self.assertIn("required", title_input.attrs)
+
+        url_input = soup.find("input", id="url_path_after_course_path")
+        self.assertIsNotNone(url_input)
+        self.assertIn("required", url_input.attrs)
+
+        visibility_select = soup.find("select", id="page_visibility_setting")
+        self.assertIsNotNone(visibility_select)
+        self.assertIn("required", visibility_select.attrs)
+
+        options = visibility_select.find_all("option")
+        self.assertEqual(len(options), 3)
+        self.assertEqual(options[0].attrs["value"], "2")
+        self.assertEqual(options[0].string, "Listed")
+        self.assertEqual(options[1].attrs["value"], "1")
+        self.assertEqual(options[1].string, "Unlisted")
+        self.assertEqual(options[2].attrs["value"], "0")
+        self.assertEqual(options[2].string, "Hidden")
+
+        content_textarea = soup.find("textarea", id="page_content")
+        self.assertIsNotNone(content_textarea)
+
+        submit_button = soup.find("button", type="submit")
+        self.assertIsNotNone(submit_button)
 
     def assert_static_page_main_content(self, response):
         soup = BeautifulSoup(response.data, "html.parser")
@@ -71,6 +149,23 @@ This is the home page.
 
         course_catalog_link = soup.find("a", string=re.compile("Chapman Course Catalog"))
         self.assertEqual(course_catalog_link.attrs["href"], "https://catalog.chapman.edu")
+
+    def test_new_page_button_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        def assertion_callback(role: Role):
+            response = self.test_client.get(course.starting_url_path + "/")
+            self.assert_course_layout_content(response, course, user, role)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            course=course,
+            user=user,
+            callback=assertion_callback,
+        )
 
     def test_course_home_page_content_with_relative_urls(self):
         user, _ = self.add_sample_user_to_test_db()
@@ -325,3 +420,136 @@ This is the home page.
         self.assert_course_layout_content(response, course, user)
 
         self.assert_static_page_content_with_links(course, response)
+
+    def test_new_page_rendering_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        def assertion_callback(role: Role):
+            response = self.test_client.get(course.starting_url_path + "/new/")
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assert_course_layout_content(response, course, user, role)
+                self.assertEqual(response.status_code, 200)
+                self.assert_edit_page_content(response)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
+
+    def test_new_page_submission_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        # Note that values are passed as strings in form
+        # even when defined as ints here
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        page_to_assert_against = Page(**sample_page_dictionary)
+
+        self.sign_user_into_session(user)
+
+        def assertion_callback(role: Role):
+            response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+                self.assert_single_page_does_not_exist_by_course_id_and_url(page_to_assert_against)
+            else:
+                # Should redirect to the new page
+                self.assertEqual(response.status_code, 302)
+                self.assert_single_page_against_matching_course_id_and_url_in_db(page_to_assert_against, should_check_page_id=False)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
+        )
+
+    def test_new_page_submission_with_conflicting_url(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        # Note that values are passed as strings in form
+        # even when defined as ints here
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        page_to_assert_against = Page(**sample_page_dictionary)
+
+        # Insert the page first
+        page_to_assert_against.page_id = self.add_single_page_and_get_id(page_to_assert_against)
+
+        self.sign_user_into_session(user)
+
+        def assertion_callback(role: Role):
+            response = self.test_client.post(course.starting_url_path + "/new/", data=sample_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 400)
+
+            # Page should remain unchanged
+            self.assert_single_page_against_matching_id_page_in_db(page_to_assert_against)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
+
+    def test_new_page_submission_with_id(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        # Note that values are passed as strings in form
+        # even when defined as ints here
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        sample_page_dictionary["page_id"] = 1
+        page_to_assert_against = Page(**sample_page_dictionary)
+
+        self.sign_user_into_session(user)
+
+        assertion_callback = self.generate_nonexistence_assertion_callback(
+            course=course,
+            page_to_assert_against=page_to_assert_against,
+            page_dictionary=sample_page_dictionary,
+        )
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
+
+
+    def test_new_page_submission_with_missing_required_data(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        page_to_assert_against = Page(**sample_page_dictionary)
+
+        self.sign_user_into_session(user)
+
+        required_data_types = ["page_title", "course_id", "url_path_after_course_path", "page_visibility_setting"]
+        for required_data_type in required_data_types:
+            with self.subTest(required_data_type=required_data_type):
+                sample_page_dictionary[required_data_type] = None
+
+                assertion_callback = self.generate_nonexistence_assertion_callback(
+                    course=course,
+                    page_to_assert_against=page_to_assert_against,
+                    page_dictionary=sample_page_dictionary,
+                )
+                self.execute_assertions_callback_based_on_roles_and_enrollment(
+                    user=user,
+                    course=course,
+                    callback=assertion_callback,
+                )
