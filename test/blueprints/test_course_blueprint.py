@@ -501,7 +501,6 @@ This is the home page.
             user=user,
             course=course,
             callback=assertion_callback,
-            cleanup_callbacks=[self.clear_all_pages]
         )
 
     def test_new_page_submission_with_id(self):
@@ -526,7 +525,6 @@ This is the home page.
             user=user,
             course=course,
             callback=assertion_callback,
-            cleanup_callbacks=[self.clear_all_pages]
         )
 
 
@@ -554,5 +552,4 @@ This is the home page.
                     user=user,
                     course=course,
                     callback=assertion_callback,
-                    cleanup_callbacks=[self.clear_all_pages]
                 )
