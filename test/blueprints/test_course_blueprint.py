@@ -635,6 +635,18 @@ This is the home page.
 
         self.sign_user_into_session(user)
 
+        def assertion_callback(role: Role):
+            # Call the endpoint
+            # If student, check if 401
+            # If an editor, check if edits were persisted into the database
+            pass
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
+
     def test_edit_page_submission_with_conflicting_url(self):
         pass
 
