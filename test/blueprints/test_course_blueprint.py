@@ -603,8 +603,19 @@ This is the home page.
             callback=assertion_callback,
         )
 
-    def test_edit_page_submission_for_different_roles(self):
+    def test_edit_page_if_page_does_not_exist(self):
         pass
+
+    def test_edit_page_submission_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        existing_page = Page(**sample_page_dictionary)
+        existing_page.page_id = self.add_single_page_and_get_id(existing_page)
+
+        self.sign_user_into_session(user)
 
     def test_edit_page_submission_with_conflicting_url(self):
         pass
