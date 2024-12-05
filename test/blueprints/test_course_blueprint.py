@@ -421,6 +421,28 @@ This is the home page.
 
         self.assert_static_page_content_with_links(course, response)
 
+    def test_course_static_page_has_edit_button_for_editors(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        paths = ["/", "/custom-path"]
+
+        for path in paths:
+            with self.subTest(path=path):
+                page = Page(
+                    url_path_after_course_path=path,
+                    page_title="Test Page",
+                    page_visibility_setting=VisibilitySetting.LISTED,
+                    page_content=self.static_page_content_for_testing,
+                    course_id=course.course_id
+                )
+                page.page_id = self.add_single_page_and_get_id(page)
+
+                # TODO write rest of test
+
+            self.clear_all_pages()
+
     def test_new_page_rendering_for_different_roles(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
