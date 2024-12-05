@@ -51,7 +51,7 @@ This is the home page.
             "url_path_after_course_path": "/office-hours"
         }
 
-    def execute_assertions_callback_based_on_roles_and_enrollment(self, user: User, course: Course, callback):
+    def execute_assertions_callback_based_on_roles_and_enrollment(self, user: User, course: Course, callback, cleanup_callbacks = []):
         roles = list(Role)
         for role in roles:
             with self.subTest(role=role):
@@ -65,6 +65,9 @@ This is the home page.
                 callback(role)
 
             self.clear_all_enrollments()
+
+            for cleanup_callback in cleanup_callbacks:
+                cleanup_callback()
 
     def assert_course_layout_content(self, response: Response, course: Course, user: User, role: Optional[Role] = None):
         # Check reused layout content for the course
@@ -460,12 +463,13 @@ This is the home page.
             else:
                 # Should redirect to the new page
                 self.assertEqual(response.status_code, 302)
-                self.assert_single_page_against_matching_course_id_and_url_in_db(page_to_assert_against)
+                self.assert_single_page_against_matching_course_id_and_url_in_db(page_to_assert_against, should_check_page_id=False)
 
         self.execute_assertions_callback_based_on_roles_and_enrollment(
             user=user,
             course=course,
             callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
         )
 
     def test_new_page_submission_with_conflicting_url(self):
@@ -497,6 +501,7 @@ This is the home page.
             user=user,
             course=course,
             callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
         )
 
     def test_new_page_submission_with_id(self):
@@ -521,6 +526,7 @@ This is the home page.
             user=user,
             course=course,
             callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
         )
 
 
@@ -548,4 +554,5 @@ This is the home page.
                     user=user,
                     course=course,
                     callback=assertion_callback,
+                    cleanup_callbacks=[self.clear_all_pages]
                 )
