@@ -234,6 +234,14 @@ class TestWithDatabaseContainer(unittest.TestCase):
         cursor.execute(delete_query)
         self.connection.commit()
 
+    def clear_all_pages(self):
+        delete_query = '''
+        DELETE FROM page;
+        '''
+        cursor = self.connection.cursor()
+        cursor.execute(delete_query)
+        self.connection.commit()
+
     def assert_single_page_against_matching_id_page_in_db(self, page_to_update):
         get_page_query = '''
         SELECT page.page_id,
@@ -253,7 +261,7 @@ class TestWithDatabaseContainer(unittest.TestCase):
         constructed_page = Page(**result)
         self.assertEqual(constructed_page, page_to_update)
 
-    def assert_single_page_against_matching_course_id_and_url_in_db(self, page_to_update: Page):
+    def assert_single_page_against_matching_course_id_and_url_in_db(self, page_to_update: Page, should_check_page_id = True):
         get_page_query = '''
         SELECT page.page_id,
             page.course_id,
@@ -270,7 +278,11 @@ class TestWithDatabaseContainer(unittest.TestCase):
         cursor = self.connection.cursor(dictionary=True)
         cursor.execute(get_page_query, params)
         result = cursor.fetchone()
+
         constructed_page = Page(**result)
+        if not should_check_page_id:
+            constructed_page.page_id = page_to_update.page_id
+
         self.assertEqual(constructed_page, page_to_update)
 
     def assert_single_page_does_not_exist_by_id(self, nonexistent_page):
