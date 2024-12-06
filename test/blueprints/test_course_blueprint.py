@@ -629,22 +629,33 @@ This is the home page.
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        sample_page_dictionary = self.generate_sample_page_dictionary(course)
-        existing_page = Page(**sample_page_dictionary)
-        existing_page.page_id = self.add_single_page_and_get_id(existing_page)
-
         self.sign_user_into_session(user)
 
         def assertion_callback(role: Role):
-            # Call the endpoint
-            # If student, check if 401
-            # If an editor, check if edits were persisted into the database
-            pass
+            # Insert the page every time, and call clear_all_pages when done
+            sample_page_dictionary = self.generate_sample_page_dictionary(course)
+            existing_page = Page(**sample_page_dictionary)
+
+            existing_page.page_id = sample_page_dictionary["page_id"] = self.add_single_page_and_get_id(existing_page)
+            sample_page_dictionary["page_title"] = "Updated Page Title"
+            sample_page_dictionary["page_content"] = "# Updated Page Content"
+            sample_page_dictionary["page_visibility_setting"] = VisibilitySetting.HIDDEN.value
+            sample_page_dictionary["url_path_after_course_path"] = "/updated-page"
+            expected_matching_page = Page(**sample_page_dictionary)
+
+            result = self.test_client.post(course.starting_url_path + existing_page.url_path_after_course_path + "/edit/", data=sample_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(result.status_code, 401)
+            else:
+                # Should redirect to the updated page
+                self.assertEqual(result.status_code, 302)
+                self.assert_single_page_against_matching_id_page_in_db(expected_matching_page)
 
         self.execute_assertions_callback_based_on_roles_and_enrollment(
             user=user,
             course=course,
             callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
         )
 
     def test_edit_page_submission_with_conflicting_url(self):
