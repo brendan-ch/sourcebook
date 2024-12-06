@@ -193,8 +193,9 @@ def course_custom_static_url_page(course_url: str, custom_static_path: str):
         user=user,
     )
 
+@course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
-def course_custom_static_url_edit_page(course_url: str, custom_static_path: str):
+def course_custom_static_url_edit_page(course_url: str, custom_static_path: str = None):
     user = get_user_from_session()
     course_repo = get_course_repository()
 
@@ -213,7 +214,11 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
         ), 401
 
     content_repository = get_content_repository()
-    page = content_repository.get_page_by_url_and_course_id_if_exists(course_id=course.course_id, url_path="/" + custom_static_path)
+    if custom_static_path:
+        page = content_repository.get_page_by_url_and_course_id_if_exists(course_id=course.course_id, url_path="/" + custom_static_path)
+    else:
+        page = content_repository.get_page_by_url_and_course_id_if_exists(course_id=course.course_id, url_path="/")
+
     if not page:
         return render_template(
             "404.html",
