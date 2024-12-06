@@ -613,10 +613,15 @@ This is the home page.
         sample_page_dictionary = self.generate_sample_page_dictionary(course)
         nonexistent_page = Page(**sample_page_dictionary)
 
-        def assertion_callback(_):
-            # Should return 404 even for students
+        def assertion_callback(role: Role):
+            # Previously returned 404 even for students, but would be more
+            # consistent with other tests to check for 401
             response = self.test_client.get(course.starting_url_path + nonexistent_page.url_path_after_course_path + "/edit/")
-            self.assertEqual(response.status_code, 404)
+
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 404)
 
         self.execute_assertions_callback_based_on_roles_and_enrollment(
             user=user,
