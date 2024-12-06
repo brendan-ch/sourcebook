@@ -7,11 +7,10 @@
 {% block body %}
     {{ super() }}
     <main>
-        {% if role.value == 2 or role.value == 3 %}
+        {% if page and (role.value == 2 or role.value == 3) %}
             {# TODO add test case #}
             <a
-                    class="edit-link"
-                    href="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/edit"
+                href="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/edit"
             >
                 [Edit this page]
             </a>
