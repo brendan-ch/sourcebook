@@ -6,7 +6,7 @@ import markdown2
 from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, session, abort, request, redirect, current_app
 
-from custom_exceptions import AlreadyExistsException
+from custom_exceptions import AlreadyExistsException, NotFoundException
 from flask_helpers import get_user_from_session
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
 from models.course import Course
@@ -225,4 +225,62 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             course=course,
             **asdict(page)
         )
+    elif request.method == "POST":
+        page_dictionary = dict(request.form)
+
+        try:
+            page_to_update = Page(**page_dictionary)
+            if not page_to_update.page_id:
+                return render_template(
+                    "course_edit_page.html",
+                    user=user,
+                    role=role,
+                    course=course,
+                    error="Page ID not provided."
+                ), 400
+
+            content_repo = get_content_repository()
+            content_repo.update_page_by_id(page_to_update)
+
+            return redirect(course.starting_url_path + page_to_update.url_path_after_course_path)
+
+        # TODO move logic to shared method
+        # TODO create test cases for each error type
+        # TODO PLEASE give better error messages, these are super vague right now
+        except NotFoundException as e:
+            current_app.logger.exception(e)
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="Couldn't find the page. It may have been moved or deleted by another user."
+            ), 404
+        except ValueError as e:
+            current_app.logger.exception(e)
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="Couldn't convert one of the attributes into the correct type."
+            ), 400
+        except AlreadyExistsException as e:
+            current_app.logger.exception(e)
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="There is already a page with that URL in this course. Please try again with a different URL."
+            ), 400
+        except TypeError as e:
+            current_app.logger.exception(e)
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="There was an issue parsing your response. Please try again later."
+            ), 400
 
