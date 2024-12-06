@@ -659,7 +659,39 @@ This is the home page.
         )
 
     def test_edit_page_submission_with_conflicting_url(self):
-        pass
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        def assertion_callback(role: Role):
+            starting_page_dictionary = self.generate_sample_page_dictionary(course)
+            page_to_not_edit = Page(**starting_page_dictionary)
+            page_to_not_edit.page_id = self.add_single_page_and_get_id(page_to_not_edit)
+
+            page_to_attempt_to_edit = Page(**starting_page_dictionary)
+            page_to_attempt_to_edit.url_path_after_course_path += "/subpath"
+            page_to_attempt_to_edit.page_id = self.add_single_page_and_get_id(page_to_attempt_to_edit)
+
+            edit_page_dictionary = starting_page_dictionary.copy()
+            edit_page_dictionary["page_id"] = page_to_attempt_to_edit.page_id
+            edit_page_dictionary["url_path_after_course_path"] = page_to_not_edit.url_path_after_course_path
+
+            result = self.test_client.post(course.starting_url_path + page_to_attempt_to_edit.url_path_after_course_path + "/edit/", data=edit_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(result.status_code, 401)
+            else:
+                # The edit should fail
+                self.assertEqual(result.status_code, 400)
+                self.assert_single_page_against_matching_id_page_in_db(page_to_attempt_to_edit)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
+        )
 
     def test_edit_page_submission_with_missing_data(self):
         # Includes ID this time
