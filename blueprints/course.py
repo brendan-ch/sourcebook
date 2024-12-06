@@ -1,5 +1,6 @@
 import re
 import urllib.parse
+from dataclasses import asdict
 
 import markdown2
 from bs4 import BeautifulSoup
@@ -209,11 +210,19 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             custom_error_message="You need to be an editor to use this endpoint."
         ), 401
 
+    content_repository = get_content_repository()
+    page = content_repository.get_page_by_url_and_course_id_if_exists(course_id=course.course_id, url_path="/" + custom_static_path)
+    if not page:
+        return render_template(
+            "404.html",
+        ), 404
+
     if request.method == "GET":
         return render_template(
             "course_edit_page.html",
             user=user,
             role=role,
             course=course,
+            **asdict(page)
         )
 
