@@ -131,39 +131,8 @@ def course_create_new_page(course_url: str):
             ), 400
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
-def course_home_page(course_url: str):
-    user = get_user_from_session()
-    course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
-
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be enrolled in this course to see it."
-        ), 401
-
-    content_repository = get_content_repository()
-    page = content_repository.get_page_by_url_and_course_id_if_exists(
-        course_id=course.course_id,
-        url_path="/"
-    )
-
-    return render_static_page_template_based_on_role(
-        course=course,
-        user=user,
-        role=role,
-        page=page,
-    )
-
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
-def course_custom_static_url_page(course_url: str, custom_static_path: str):
+def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
     user = get_user_from_session()
     course_repo = get_course_repository()
 
@@ -182,10 +151,16 @@ def course_custom_static_url_page(course_url: str, custom_static_path: str):
         ), 401
 
     content_repository = get_content_repository()
-    page = content_repository.get_page_by_url_and_course_id_if_exists(
-        course_id=course.course_id,
-        url_path="/" + custom_static_path
-    )
+    if custom_static_path:
+        page = content_repository.get_page_by_url_and_course_id_if_exists(
+            course_id=course.course_id,
+            url_path="/" + custom_static_path
+        )
+    else:
+        page = content_repository.get_page_by_url_and_course_id_if_exists(
+            course_id=course.course_id,
+            url_path="/"
+        )
 
     return render_static_page_template_based_on_role(
         role=role,
@@ -196,7 +171,7 @@ def course_custom_static_url_page(course_url: str, custom_static_path: str):
 
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
-def course_custom_static_url_edit_page(course_url: str, custom_static_path: str = None):
+def course_custom_static_url_edit_page(course_url: str, custom_static_path: Optional[str] = None):
     user = get_user_from_session()
     course_repo = get_course_repository()
 
