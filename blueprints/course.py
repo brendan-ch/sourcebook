@@ -121,6 +121,7 @@ def course_create_new_page(course_url: str):
             current_app.logger.exception(e)
             return render_template(
                 "course_edit_page.html",
+                submit_path="/new",
                 user=user,
                 role=role,
                 course=course,
@@ -220,6 +221,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
     if request.method == "GET":
         return render_template(
             "course_edit_page.html",
+            submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
             user=user,
             role=role,
             course=course,
@@ -233,6 +235,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             if not page_to_update.page_id:
                 return render_template(
                     "course_edit_page.html",
+                    submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
                     user=user,
                     role=role,
                     course=course,
@@ -244,6 +247,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
 
             return redirect(course.starting_url_path + page_to_update.url_path_after_course_path)
 
+        # TODO move duplicate render_template calls
         # TODO move logic to shared method
         # TODO create test cases for each error type
         # TODO PLEASE give better error messages, these are super vague right now
@@ -251,6 +255,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             current_app.logger.exception(e)
             return render_template(
                 "course_edit_page.html",
+                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
                 user=user,
                 role=role,
                 course=course,
@@ -260,6 +265,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             current_app.logger.exception(e)
             return render_template(
                 "course_edit_page.html",
+                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
                 user=user,
                 role=role,
                 course=course,
@@ -269,6 +275,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             current_app.logger.exception(e)
             return render_template(
                 "course_edit_page.html",
+                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
                 user=user,
                 role=role,
                 course=course,
@@ -278,6 +285,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             current_app.logger.exception(e)
             return render_template(
                 "course_edit_page.html",
+                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
                 user=user,
                 role=role,
                 course=course,
