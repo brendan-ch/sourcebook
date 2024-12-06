@@ -726,6 +726,7 @@ This is the home page.
                     user=user,
                     course=course,
                     callback=assertion_callback,
-                    cleanup_callbacks=[self.clear_all_pages]
                 )
+
+            self.clear_all_pages()
 
