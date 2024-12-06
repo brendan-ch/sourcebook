@@ -1,6 +1,7 @@
 import re
 import urllib.parse
 from dataclasses import asdict
+from typing import Optional
 
 import markdown2
 from bs4 import BeautifulSoup
@@ -218,28 +219,27 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
             "404.html",
         ), 404
 
-    if request.method == "GET":
+    def render_edit_template_with_optional_error(error: Optional[str] = None):
         return render_template(
             "course_edit_page.html",
             submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
             user=user,
             role=role,
             course=course,
+            error=error,
             **asdict(page)
         )
+
+    if request.method == "GET":
+        return render_edit_template_with_optional_error(), 200
     elif request.method == "POST":
         page_dictionary = dict(request.form)
 
         try:
             page_to_update = Page(**page_dictionary)
             if not page_to_update.page_id:
-                return render_template(
-                    "course_edit_page.html",
-                    submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
-                    user=user,
-                    role=role,
-                    course=course,
-                    error="Page ID not provided."
+                return render_edit_template_with_optional_error(
+                    error="Page ID not provided.",
                 ), 400
 
             content_repo = get_content_repository()
@@ -247,48 +247,27 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: str)
 
             return redirect(course.starting_url_path + page_to_update.url_path_after_course_path)
 
-        # TODO move duplicate render_template calls
-        # TODO move logic to shared method
+        # TODO move logic to shared method and make it work for home page
         # TODO create test cases for each error type
         # TODO PLEASE give better error messages, these are super vague right now
         except NotFoundException as e:
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
-                user=user,
-                role=role,
-                course=course,
-                error="Couldn't find the page. It may have been moved or deleted by another user."
+            return render_edit_template_with_optional_error(
+                "Couldn't find the page. It may have been moved or deleted by another user."
             ), 404
         except ValueError as e:
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
-                user=user,
-                role=role,
-                course=course,
+            return render_edit_template_with_optional_error(
                 error="Couldn't convert one of the attributes into the correct type."
             ), 400
         except AlreadyExistsException as e:
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
-                user=user,
-                role=role,
-                course=course,
+            return render_edit_template_with_optional_error(
                 error="There is already a page with that URL in this course. Please try again with a different URL."
             ), 400
         except TypeError as e:
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                submit_path=course.starting_url_path + page.url_path_after_course_path + "/edit",
-                user=user,
-                role=role,
-                course=course,
+            return render_edit_template_with_optional_error(
                 error="There was an issue parsing your response. Please try again later."
             ), 400
 
