@@ -7,6 +7,15 @@
 {% block body %}
     {{ super() }}
     <main>
+        {% if role.value == 2 or role.value == 3 %}
+            {# TODO add test case #}
+            <a
+                    class="edit-link"
+                    href="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/edit"
+            >
+                [Edit this page]
+            </a>
+        {% endif %}
         {{ page_html_content|safe }}
     </main>
 {% endblock %}

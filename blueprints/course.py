@@ -59,6 +59,7 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
         user=user,
         role=role,
         page_html_content=page_html_content,
+        page=page,
     )
 
 @course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
