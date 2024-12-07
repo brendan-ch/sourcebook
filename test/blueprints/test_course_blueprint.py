@@ -749,8 +749,9 @@ This is the home page.
                     full_request_path = course.starting_url_path + page_to_be_deleted.url_path_after_course_path
                     if not full_request_path.endswith("/"):
                         full_request_path += "/"
+                    full_request_path += "delete/"
 
-                    result = self.test_client.delete(full_request_path)
+                    result = self.test_client.post(full_request_path)
 
                     if role == Role.STUDENT:
                         self.assertEqual(result.status_code, 401)
@@ -780,8 +781,9 @@ This is the home page.
                     full_request_path = course.starting_url_path + path
                     if not full_request_path.endswith("/"):
                         full_request_path += "/"
+                    full_request_path += "delete/"
 
-                    result = self.test_client.delete(full_request_path)
+                    result = self.test_client.post(full_request_path)
                     self.assertEqual(result.status_code, 404)
 
                 self.execute_assertions_callback_based_on_roles_and_enrollment(
