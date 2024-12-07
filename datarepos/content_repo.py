@@ -153,5 +153,5 @@ class ContentRepo(Repo):
 
         return [Page(**result) for result in results]
 
-    def generate_page_navigation_link_tree_for_course_id(self, course_id: int) -> list[PageNavigationLink]:
+    def generate_listed_page_navigation_link_tree_for_course_id(self, course_id: int) -> list[PageNavigationLink]:
         pass
