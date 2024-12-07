@@ -13,6 +13,7 @@ from flask_repository_getters import get_course_repository, get_user_repository,
 from models.course import Course
 from models.course_enrollment import Role
 from models.page import VisibilitySetting, Page
+from models.page_navigation_link import PageNavigationLink
 from models.user import User
 
 course_bp = Blueprint("course", __name__)
@@ -32,13 +33,14 @@ def generate_html_from_markdown(page: Page, course: Course):
     page_html_content = soup.prettify()
     return page_html_content
 
-def render_static_page_template_based_on_role(course: Course, user: User, page: Page, role: Role):
+def render_static_page_template_based_on_role(course: Course, user: User, page: Page, role: Role, page_navigation_links: list[PageNavigationLink]):
     if not page:
         return render_template(
             "course_static_page.html",
             course=course,
             user=user,
             role=role,
+            page_navigation_links=page_navigation_links,
             page_html_content="<p>This page does not exist within the course.</p>",
         ), 404
     elif page.page_visibility_setting == VisibilitySetting.HIDDEN \
@@ -48,6 +50,7 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
             course=course,
             user=user,
             role=role,
+            page_navigation_links=page_navigation_links,
             page_html_content="<p>This page is hidden.</p>"
         ), 401
 
@@ -60,6 +63,7 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
         role=role,
         page_html_content=page_html_content,
         page=page,
+        page_navigation_links=page_navigation_links,
     )
 
 @course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
@@ -162,12 +166,17 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
             url_path="/"
         )
 
+    page_navigation_links = content_repository.generate_listed_page_navigation_link_tree_for_course_id(
+        course.course_id
+    )
+
     # TODO extract all 401, 404 logic into middleware or @decorators?
     return render_static_page_template_based_on_role(
         role=role,
         course=course,
         page=page,
         user=user,
+        page_navigation_links=page_navigation_links
     )
 
 @course_bp.route("/<string:course_url>/delete/", methods=["POST"])
