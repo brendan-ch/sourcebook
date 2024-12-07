@@ -1,7 +1,21 @@
 {% extends "course_layout.html" %}
 {% block header %}
     {{ super() }}
-    <title>{{ page.page_title }}</title>
+    <style>
+        .update-delete-button-container {
+            display: flex;
+            flex-direction: row;
+            gap: 0.5rem;
+        }
+
+        .update-delete-button-container a {
+            color: var(--accent-color-primary);
+        }
+
+        .update-delete-button-container button {
+            color: var(--accent-color-primary);
+        }
+    </style><title>{{ page.page_title }}</title>
 {% endblock %}
 
 {% block body %}
@@ -9,16 +23,18 @@
     <main>
         {% if page and (role.value == 2 or role.value == 3) %}
             {# TODO add test case for displaying these buttons #}
-            <a
-                href="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/edit"
-            >
-                [Edit this page]
-            </a>
-            <form action="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/delete" method="POST">
-                <button type="submit">
-                    [Delete this page]
-                </button>
-            </form>
+            <div class="update-delete-button-container">
+                <a
+                        href="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/edit"
+                >
+                    [Edit this page]
+                </a>
+                <form action="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/delete" method="POST">
+                    <button type="submit" onclick="return confirm('Are you sure you want to delete this page?');">
+                        [Delete this page]
+                    </button>
+                </form>
+            </div>
         {% endif %}
         {{ page_html_content|safe }}
     </main>
