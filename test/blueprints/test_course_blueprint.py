@@ -69,7 +69,13 @@ This is the home page.
             for cleanup_callback in cleanup_callbacks:
                 cleanup_callback()
 
-    def assert_course_layout_content(self, response: Response, course: Course, user: User, role: Optional[Role] = None):
+    def assert_course_layout_content(
+        self,response: Response,
+        course: Course,
+        user: User,
+        role: Optional[Role] = None,
+        course_pages: Optional[list[Page]] = None
+    ):
         # Check reused layout content for the course
         # Future work:
         # - pages that should be visible in navigation (future)
@@ -95,6 +101,23 @@ This is the home page.
             self.assertEqual(new_page_button.attrs["href"], f"{course.starting_url_path}/new")
         else:
             self.assertIsNone(new_page_button)
+
+        if course_pages:
+            # For each course page, check if it's listed/unlisted/hidden
+
+            # If listed and URL is nested under listed page,
+            # show as nested page
+            # What this looks like in code: <ul> nested within <li>
+            # Parent <li> has adjacent with the title of the root page
+
+            # If listed and URL is nested under hidden/nonexistent page,
+            # show as root page
+
+            # If listed and URL is not nested, show as root page
+
+            # If unlisted/hidden, not shown in sidebar
+
+            pass
 
     def assert_edit_page_content(self, response):
         # TODO check if page content is pre-populated with page information
