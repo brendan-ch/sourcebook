@@ -730,3 +730,8 @@ This is the home page.
 
             self.clear_all_pages()
 
+    def test_delete_page_with_different_roles(self):
+        pass
+
+    def test_delete_nonexistent_page_with_different_roles(self):
+        pass
