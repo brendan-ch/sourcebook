@@ -5,6 +5,7 @@ from mysql.connector import IntegrityError
 from custom_exceptions import AlreadyExistsException
 from datarepos.repo import Repo
 from models.page import Page, VisibilitySetting
+from models.page_navigation_link import PageNavigationLink
 
 
 class ContentRepo(Repo):
@@ -151,3 +152,6 @@ class ContentRepo(Repo):
         results = cursor.fetchall()
 
         return [Page(**result) for result in results]
+
+    def generate_page_navigation_link_tree_for_course_id(self, course_id: int) -> list[PageNavigationLink]:
+        pass
