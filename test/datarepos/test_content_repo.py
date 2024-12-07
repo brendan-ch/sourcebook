@@ -3,6 +3,7 @@ from typing import Optional
 from custom_exceptions import AlreadyExistsException, NotFoundException
 from datarepos.content_repo import ContentRepo
 from models.page import Page, VisibilitySetting
+from models.page_navigation_link import PageNavigationLink
 from test.test_with_database_container import TestWithDatabaseContainer
 
 
@@ -331,3 +332,42 @@ Embark on your journey into the exciting world of game development today!
         pages_from_repo = self.content_repo.get_listed_pages_for_course_id(1)
         self.assertIsNotNone(pages_from_repo)
         self.assertEqual(len(pages_from_repo), 0)
+
+    def test_generate_listed_page_navigation_link_for_course_id(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        listed_page_urls = [
+            "/",
+            "/nested-parent-page",
+            "/nested-parent-page/nested-child-1",
+            "/nested-parent-page/nested-child-1/nested-child-2",
+        ]
+
+        for i in range(len(listed_page_urls)):
+            page_url = listed_page_urls[i]
+            page = self.return_sample_page(course.course_id, user.user_id)
+            page.url_path_after_course_path = page_url
+            page.page_title = f"Page {i}"
+            page.page_id = self.add_single_page_and_get_id(page)
+
+        links = self.content_repo.generate_listed_page_navigation_link_tree_for_course_id(
+            course.course_id
+        )
+
+        self.assertEqual(len(links), 2)
+
+        self.assertEqual(links[0].url_path_after_course_path, "/")
+        self.assertEqual(len(links[0].nested_links), 0)
+
+        self.assertEqual(links[1].url_path_after_course_path, "/nested-parent-page")
+        self.assertEqual(len(links[1].nested_links), 1)
+
+        links: list[PageNavigationLink] = links[1].nested_links
+        self.assertEqual(links[0].url_path_after_course_path, "/nested-parent-page/nested-child-1")
+        self.assertEqual(len(links[0].nested_links), 1)
+
+        links = links[0].nested_links
+        self.assertEqual(links[0].url_path_after_course_path, "/nested-parent-page/nested-child-1/nested-child-2")
+
