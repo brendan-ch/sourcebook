@@ -4,6 +4,7 @@ from typing import Optional
 from bs4 import BeautifulSoup
 from flask import Response
 
+from models import page
 from models.course import Course
 from models.course_enrollment import CourseEnrollment, Role
 from models.page import Page, VisibilitySetting
@@ -730,7 +731,7 @@ This is the home page.
 
             self.clear_all_pages()
 
-    def test_delete_page_with_different_roles(self):
+    def test_delete_page_with_different_paths_and_roles(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
@@ -761,5 +762,25 @@ This is the home page.
                     cleanup_callbacks=[self.clear_all_pages]
                 )
 
-    def test_delete_nonexistent_page_with_different_roles(self):
-        pass
+    def test_delete_nonexistent_page_with_different_paths_and_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+        paths = ["/", "/custom-path/"]
+
+        self.sign_user_into_session(user)
+
+        for path in paths:
+            with self.subTest(path=path):
+                def assertion_callback(role: Role):
+                    result = self.test_client.delete(course.starting_url_path + path)
+                    if role == Role.STUDENT:
+                        self.assertEqual(result.status_code, 401)
+                    else:
+                        self.assertEqual(result.status_code, 404)
+
+                self.execute_assertions_callback_based_on_roles_and_enrollment(
+                    user=user,
+                    course=course,
+                    callback=assertion_callback,
+                )
