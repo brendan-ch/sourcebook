@@ -1,3 +1,4 @@
+from collections import deque
 from typing import Optional
 
 from mysql.connector import IntegrityError
@@ -154,4 +155,52 @@ class ContentRepo(Repo):
         return [Page(**result) for result in results]
 
     def generate_listed_page_navigation_link_tree_for_course_id(self, course_id: int) -> list[PageNavigationLink]:
-        pass
+        selection_query = '''
+        SELECT
+            page.course_id,
+            page.url_path_after_course_path,
+            page.page_title
+        FROM page
+        WHERE page.page_visibility_setting = %s
+            AND page.course_id = %s
+            AND ROUND (  
+                (  
+                LENGTH(page.url_path_after_course_path)  
+                  - LENGTH( REPLACE ( page.url_path_after_course_path, '/', '') )  
+                ) / LENGTH('/')  
+            ) = %s
+            AND page.url_path_after_course_path LIKE %s
+        ORDER BY page.page_title ASC;
+        '''
+
+        processing_queue = deque()
+        processing_queue.append((None, 1))
+
+        url_mapping = {}
+
+        while processing_queue:
+            starting_path, nesting_level = processing_queue.popleft()
+            if starting_path is None:
+                filter_string = "%%"
+            else:
+                filter_string = starting_path + "%"
+            params = (VisibilitySetting.LISTED.value, course_id, nesting_level, filter_string)
+
+            cursor = self.connection.cursor(dictionary=True)
+            cursor.execute(selection_query, params)
+            results = cursor.fetchall()
+
+            for result in results:
+                navigation_link = PageNavigationLink(**result)
+                navigation_link.nested_links = []
+
+                if starting_path in url_mapping:
+                    url_mapping[starting_path].nested_links.append(navigation_link)
+
+                url_mapping[navigation_link.url_path_after_course_path] = navigation_link
+
+                if navigation_link.url_path_after_course_path != "/":
+                    processing_queue.append((navigation_link.url_path_after_course_path, nesting_level + 1))
+
+        value_to_return = [value for value in url_mapping.values() if value.url_path_after_course_path.count("/") == 1]
+        return value_to_return
