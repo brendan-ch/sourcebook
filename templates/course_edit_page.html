@@ -82,7 +82,7 @@
     <form
         class="main-wrapper"
         method="POST"
-        action="{{ course.starting_url_path }}/new"
+        action="{{ submit_path }}"
         enctype="multipart/form-data"
     >
         <div class="bar-above-main-content edit-bar">
@@ -92,16 +92,27 @@
             </div>
         </div>
         <main>
-            <p class="error-text">{{ error }}</p>
+            {% if error %}
+                <p class="error-text">{{ error }}</p>
+            {% endif %}
             <div class="hidden-attributes">
                 {# Needed for the form, but hidden to the user #}
                 <label for="course_id"></label>
                 <input id="course_id" name="course_id" type="hidden" value="{{ course.course_id }}" >
+                {# For page edits #}
+                <label for="page_id"></label>
+                <input id="page_id" name="page_id" type="hidden" value="{{ page_id }}" >
             </div>
             <div class="additional-attributes">
                 <div class="additional-attributes-input-group limited-width">
                     <label for="page_title">Title</label>
-                    <input id="page_title" name="page_title" type="text" required >
+                    <input
+                        id="page_title"
+                        name="page_title"
+                        type="text"
+                        required
+                        value="{{ page_title }}"
+                    >
                 </div>
                 <div class="additional-attributes-input-group limited-width">
                     <label for="url_path_after_course_path">URL path</label>
@@ -110,6 +121,7 @@
                         name="url_path_after_course_path"
                         type="text"
                         placeholder="e.g. /office-hours"
+                        value="{{ url_path_after_course_path }}"
                         required
                     >
                 </div>
@@ -124,7 +136,12 @@
                 <div class="additional-attributes-input-group">
                     <label for="page_content">Content</label>
                     <div class="grow-wrap">
-                        <textarea name="page_content" id="page_content" onInput="this.parentNode.dataset.replicatedValue = this.value"></textarea>
+                        <textarea
+                            name="page_content"
+                            id="page_content"
+                            onInput="this.parentNode.dataset.replicatedValue
+                            = this.value"
+                        >{{ page_content }}</textarea>
                     </div>
                 </div>
             </div>

@@ -97,6 +97,7 @@ This is the home page.
             self.assertIsNone(new_page_button)
 
     def assert_edit_page_content(self, response):
+        # TODO check if page content is pre-populated with page information
         soup = BeautifulSoup(response.data, "html.parser")
 
         title_input = soup.find("input", id="page_title")
@@ -421,6 +422,28 @@ This is the home page.
 
         self.assert_static_page_content_with_links(course, response)
 
+    def test_course_static_page_has_edit_button_for_editors(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        paths = ["/", "/custom-path"]
+
+        for path in paths:
+            with self.subTest(path=path):
+                page = Page(
+                    url_path_after_course_path=path,
+                    page_title="Test Page",
+                    page_visibility_setting=VisibilitySetting.LISTED,
+                    page_content=self.static_page_content_for_testing,
+                    course_id=course.course_id
+                )
+                page.page_id = self.add_single_page_and_get_id(page)
+
+                # TODO write rest of test
+
+            self.clear_all_pages()
+
     def test_new_page_rendering_for_different_roles(self):
         user, _ = self.add_sample_user_to_test_db()
         courses, course_terms = self.add_sample_course_term_and_course_cluster()
@@ -553,3 +576,157 @@ This is the home page.
                     course=course,
                     callback=assertion_callback,
                 )
+
+    def test_edit_page_rendering_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        existing_page = Page(**sample_page_dictionary)
+        existing_page.page_id = self.add_single_page_and_get_id(existing_page)
+
+        def assertion_callback(role: Role):
+            response = self.test_client.get(course.starting_url_path + existing_page.url_path_after_course_path + "/edit/")
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assert_course_layout_content(response, course, user, role)
+                self.assertEqual(response.status_code, 200)
+                self.assert_edit_page_content(response)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
+
+    def test_edit_page_for_different_roles_if_page_does_not_exist(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        sample_page_dictionary = self.generate_sample_page_dictionary(course)
+        nonexistent_page = Page(**sample_page_dictionary)
+
+        def assertion_callback(role: Role):
+            # Previously returned 404 even for students, but would be more
+            # consistent with other tests to check for 401
+            response = self.test_client.get(course.starting_url_path + nonexistent_page.url_path_after_course_path + "/edit/")
+
+            if role == Role.STUDENT:
+                self.assertEqual(response.status_code, 401)
+            else:
+                self.assertEqual(response.status_code, 404)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+        )
+
+    def test_edit_page_submission_for_different_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        def assertion_callback(role: Role):
+            # Insert the page every time, and call clear_all_pages when done
+            sample_page_dictionary = self.generate_sample_page_dictionary(course)
+            existing_page = Page(**sample_page_dictionary)
+
+            existing_page.page_id = sample_page_dictionary["page_id"] = self.add_single_page_and_get_id(existing_page)
+            sample_page_dictionary["page_title"] = "Updated Page Title"
+            sample_page_dictionary["page_content"] = "# Updated Page Content"
+            sample_page_dictionary["page_visibility_setting"] = VisibilitySetting.HIDDEN.value
+            sample_page_dictionary["url_path_after_course_path"] = "/updated-page"
+            expected_matching_page = Page(**sample_page_dictionary)
+
+            result = self.test_client.post(course.starting_url_path + existing_page.url_path_after_course_path + "/edit/", data=sample_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(result.status_code, 401)
+            else:
+                # Should redirect to the updated page
+                self.assertEqual(result.status_code, 302)
+                self.assert_single_page_against_matching_id_page_in_db(expected_matching_page)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
+        )
+
+    def test_edit_page_submission_with_conflicting_url(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        def assertion_callback(role: Role):
+            starting_page_dictionary = self.generate_sample_page_dictionary(course)
+            page_to_not_edit = Page(**starting_page_dictionary)
+            page_to_not_edit.page_id = self.add_single_page_and_get_id(page_to_not_edit)
+
+            page_to_attempt_to_edit = Page(**starting_page_dictionary)
+            page_to_attempt_to_edit.url_path_after_course_path += "/subpath"
+            page_to_attempt_to_edit.page_id = self.add_single_page_and_get_id(page_to_attempt_to_edit)
+
+            edit_page_dictionary = starting_page_dictionary.copy()
+            edit_page_dictionary["page_id"] = page_to_attempt_to_edit.page_id
+            edit_page_dictionary["url_path_after_course_path"] = page_to_not_edit.url_path_after_course_path
+
+            result = self.test_client.post(course.starting_url_path + page_to_attempt_to_edit.url_path_after_course_path + "/edit/", data=edit_page_dictionary)
+            if role == Role.STUDENT:
+                self.assertEqual(result.status_code, 401)
+            else:
+                # The edit should fail
+                self.assertEqual(result.status_code, 400)
+                self.assert_single_page_against_matching_id_page_in_db(page_to_attempt_to_edit)
+
+        self.execute_assertions_callback_based_on_roles_and_enrollment(
+            user=user,
+            course=course,
+            callback=assertion_callback,
+            cleanup_callbacks=[self.clear_all_pages]
+        )
+
+    def test_edit_page_submission_with_missing_required_data(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+
+        self.sign_user_into_session(user)
+
+        required_data_types = ["page_title", "course_id", "url_path_after_course_path", "page_visibility_setting", "page_id"]
+        for required_data_type in required_data_types:
+            with self.subTest(required_data_type=required_data_type):
+                sample_page_dictionary = self.generate_sample_page_dictionary(course)
+                sample_page = Page(**sample_page_dictionary)
+                sample_page.page_id = self.add_single_page_and_get_id(sample_page)
+
+                sample_page_dictionary[required_data_type] = None
+
+                def assertion_callback(role: Role):
+                    result = self.test_client.post(course.starting_url_path + sample_page.url_path_after_course_path + "/edit/", data=sample_page_dictionary)
+                    if role == Role.STUDENT:
+                        self.assertEqual(result.status_code, 401)
+                    else:
+                        self.assertEqual(result.status_code, 400)
+                        self.assert_single_page_against_matching_id_page_in_db(sample_page)
+
+                self.execute_assertions_callback_based_on_roles_and_enrollment(
+                    user=user,
+                    course=course,
+                    callback=assertion_callback,
+                )
+
+            self.clear_all_pages()
+
