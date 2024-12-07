@@ -1,19 +1,24 @@
 {% extends "course_layout.html" %}
 {% block header %}
     {{ super() }}
-    <title>Course Static Page</title>
+    <title>{{ page.page_title }}</title>
 {% endblock %}
 
 {% block body %}
     {{ super() }}
     <main>
         {% if page and (role.value == 2 or role.value == 3) %}
-            {# TODO add test case #}
+            {# TODO add test case for displaying these buttons #}
             <a
                 href="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/edit"
             >
                 [Edit this page]
             </a>
+            <form action="{{ course.starting_url_path }}{{ page.url_path_after_course_path }}/delete" method="POST">
+                <button type="submit">
+                    [Delete this page]
+                </button>
+            </form>
         {% endif %}
         {{ page_html_content|safe }}
     </main>
