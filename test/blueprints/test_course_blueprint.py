@@ -4,7 +4,6 @@ from typing import Optional
 from bs4 import BeautifulSoup
 from flask import Response
 
-from models import page
 from models.course import Course
 from models.course_enrollment import CourseEnrollment, Role
 from models.page import Page, VisibilitySetting
@@ -777,17 +776,13 @@ This is the home page.
 
         for path in paths:
             with self.subTest(path=path):
-                def assertion_callback(role: Role):
+                def assertion_callback(_):
                     full_request_path = course.starting_url_path + path
                     if not full_request_path.endswith("/"):
                         full_request_path += "/"
 
                     result = self.test_client.delete(full_request_path)
-
-                    if role == Role.STUDENT:
-                        self.assertEqual(result.status_code, 401)
-                    else:
-                        self.assertEqual(result.status_code, 404)
+                    self.assertEqual(result.status_code, 404)
 
                 self.execute_assertions_callback_based_on_roles_and_enrollment(
                     user=user,
