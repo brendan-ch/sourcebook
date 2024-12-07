@@ -15,7 +15,10 @@
         .update-delete-button-container button {
             color: var(--accent-color-primary);
         }
-    </style><title>{{ page.page_title }}</title>
+    </style>
+    {% if page %}
+        <title>{{ page.page_title }}</title>
+    {% endif %}
 {% endblock %}
 
 {% block body %}
