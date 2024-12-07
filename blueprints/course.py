@@ -130,8 +130,8 @@ def course_create_new_page(course_url: str):
                 error="There was an issue parsing your response. Please try again later."
             ), 400
 
-@course_bp.route("/<string:course_url>/", methods=["GET"])
-@course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
+@course_bp.route("/<string:course_url>/", methods=["GET", "DELETE"])
+@course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET", "DELETE"])
 def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
     user = get_user_from_session()
     course_repo = get_course_repository()
@@ -162,12 +162,20 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
             url_path="/"
         )
 
-    return render_static_page_template_based_on_role(
-        role=role,
-        course=course,
-        page=page,
-        user=user,
-    )
+    if request.method == "GET":
+        return render_static_page_template_based_on_role(
+            role=role,
+            course=course,
+            page=page,
+            user=user,
+        )
+    elif request.method == "DELETE":
+        # Check the role of the user
+        # If user doesn't have correct role, return 401
+        # Otherwise, proceed to try to delete the page
+        # If delete is unsuccessful, re-render current page with Flask flashed message
+        # If successful, queue flashed message and go to the home page
+        pass
 
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
