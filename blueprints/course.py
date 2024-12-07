@@ -5,7 +5,7 @@ from typing import Optional
 
 import markdown2
 from bs4 import BeautifulSoup
-from flask import Blueprint, render_template, session, abort, request, redirect, current_app
+from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
 from flask_helpers import get_user_from_session
@@ -162,20 +162,47 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
             url_path="/"
         )
 
-    if request.method == "GET":
+    # TODO extract all 401, 404 logic into middleware or @decorators?
+    if request.method == "DELETE":
+        if not page:
+            return render_template("404.html"), 404
+
+        if role == Role.STUDENT:
+            flash("You don't have permission to delete this page.")
+            page_html_content = generate_html_from_markdown(page, course)
+            return render_template(
+                "course_static_page.html",
+                course=course,
+                page=page,
+                user=user,
+                role=role,
+                page_html_content=page_html_content,
+            ), 401
+        else:
+            try:
+                content_repository.delete_page_by_id(page.page_id)
+                flash(f"Page at {page.url_path_after_course_path} was deleted.")
+                return redirect(course.starting_url_path)
+            except NotFoundException:
+                flash(f"Page was not found. Someone else may have deleted it already.")
+
+                page_html_content = generate_html_from_markdown(page, course)
+                return render_template(
+                    "course_static_page.html",
+                    course=course,
+                    page=page,
+                    user=user,
+                    role=role,
+                    page_html_content=page_html_content,
+                ), 404
+
+    elif request.method == "GET":
         return render_static_page_template_based_on_role(
             role=role,
             course=course,
             page=page,
             user=user,
         )
-    elif request.method == "DELETE":
-        # Check the role of the user
-        # If user doesn't have correct role, return 401
-        # Otherwise, proceed to try to delete the page
-        # If delete is unsuccessful, re-render current page with Flask flashed message
-        # If successful, queue flashed message and go to the home page
-        pass
 
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
