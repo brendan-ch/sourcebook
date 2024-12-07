@@ -5,7 +5,7 @@ from typing import Optional
 
 import markdown2
 from bs4 import BeautifulSoup
-from flask import Blueprint, render_template, session, abort, request, redirect, current_app
+from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
 from flask_helpers import get_user_from_session
@@ -162,12 +162,78 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
             url_path="/"
         )
 
+    # TODO extract all 401, 404 logic into middleware or @decorators?
     return render_static_page_template_based_on_role(
         role=role,
         course=course,
         page=page,
         user=user,
     )
+
+@course_bp.route("/<string:course_url>/delete/", methods=["POST"])
+@course_bp.route("/<string:course_url>/<path:custom_static_path>/delete/", methods=["POST"])
+def course_delete_page(course_url: str, custom_static_path: Optional[str] = None):
+    user = get_user_from_session()
+    course_repo = get_course_repository()
+
+    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
+    if not course:
+        return render_template("404.html"), 404
+
+    role = None
+    if user:
+        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
+
+    if not role:
+        return render_template(
+            "401.html",
+            custom_error_message="You need to be enrolled in this course to see it."
+        ), 401
+
+    content_repository = get_content_repository()
+    if custom_static_path:
+        page = content_repository.get_page_by_url_and_course_id_if_exists(
+            course_id=course.course_id,
+            url_path="/" + custom_static_path
+        )
+    else:
+        page = content_repository.get_page_by_url_and_course_id_if_exists(
+            course_id=course.course_id,
+            url_path="/"
+        )
+
+    if not page:
+        return render_template("404.html"), 404
+
+    if role == Role.STUDENT:
+        flash("You don't have permission to delete this page.")
+        page_html_content = generate_html_from_markdown(page, course)
+        return render_template(
+            "course_static_page.html",
+            course=course,
+            page=page,
+            user=user,
+            role=role,
+            page_html_content=page_html_content,
+        ), 401
+    else:
+        try:
+            content_repository.delete_page_by_id(page.page_id)
+            flash(f"Page at {page.url_path_after_course_path} was deleted.")
+            return redirect(course.starting_url_path)
+        except NotFoundException:
+            flash(f"Page was not found. Someone else may have deleted it already.")
+
+            page_html_content = generate_html_from_markdown(page, course)
+            return render_template(
+                "course_static_page.html",
+                course=course,
+                page=page,
+                user=user,
+                role=role,
+                page_html_content=page_html_content,
+            ), 404
+
 
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])

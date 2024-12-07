@@ -730,3 +730,64 @@ This is the home page.
 
             self.clear_all_pages()
 
+    def test_delete_page_with_different_paths_and_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+        paths = ["/", "/custom-path"]
+
+        self.sign_user_into_session(user)
+
+        for path in paths:
+            with self.subTest(path=path):
+                def assertion_callback(role: Role):
+                    page_dictionary = self.generate_sample_page_dictionary(course)
+                    page_to_be_deleted = Page(**page_dictionary)
+                    page_to_be_deleted.url_path_after_course_path = path
+                    page_to_be_deleted.page_id = self.add_single_page_and_get_id(page_to_be_deleted)
+
+                    full_request_path = course.starting_url_path + page_to_be_deleted.url_path_after_course_path
+                    if not full_request_path.endswith("/"):
+                        full_request_path += "/"
+                    full_request_path += "delete/"
+
+                    result = self.test_client.post(full_request_path)
+
+                    if role == Role.STUDENT:
+                        self.assertEqual(result.status_code, 401)
+                    else:
+                        # Redirect to the home page
+                        self.assertEqual(result.status_code, 302)
+                        self.assert_single_page_does_not_exist_by_id(page_to_be_deleted)
+
+                self.execute_assertions_callback_based_on_roles_and_enrollment(
+                    user=user,
+                    course=course,
+                    callback=assertion_callback,
+                    cleanup_callbacks=[self.clear_all_pages]
+                )
+
+    def test_delete_nonexistent_page_with_different_paths_and_roles(self):
+        user, _ = self.add_sample_user_to_test_db()
+        courses, course_terms = self.add_sample_course_term_and_course_cluster()
+        course = courses[0]
+        paths = ["/", "/custom-path"]
+
+        self.sign_user_into_session(user)
+
+        for path in paths:
+            with self.subTest(path=path):
+                def assertion_callback(_):
+                    full_request_path = course.starting_url_path + path
+                    if not full_request_path.endswith("/"):
+                        full_request_path += "/"
+                    full_request_path += "delete/"
+
+                    result = self.test_client.post(full_request_path)
+                    self.assertEqual(result.status_code, 404)
+
+                self.execute_assertions_callback_based_on_roles_and_enrollment(
+                    user=user,
+                    course=course,
+                    callback=assertion_callback,
+                )
