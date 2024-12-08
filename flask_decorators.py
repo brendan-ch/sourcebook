@@ -40,12 +40,12 @@ def requires_course_enrollment(course_url_routing_arg_key: str, required_role: R
                 return render_template(
                     "401.html",
                     custom_error_message="You need to be enrolled in this class to see it."
-                )
+                ), 401
             elif role.value < required_role.value:
                 return render_template(
                     "401.html",
                     custom_error_message="You need a higher role to use this endpoint."
-                )
+                ), 401
 
             g.course = course
             g.role = role
