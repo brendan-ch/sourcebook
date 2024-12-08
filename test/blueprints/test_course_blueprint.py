@@ -230,6 +230,8 @@ This is the home page.
         self.assertEqual(response.status_code, 401)
 
     def test_course_home_page_content_if_course_not_exists(self):
+        user, _ = self.add_sample_user_to_test_db()
+        self.sign_user_into_session(user)
         response = self.test_client.get("/cpsc-236-f24/")
         self.assertEqual(response.status_code, 404)
 
@@ -412,6 +414,9 @@ This is the home page.
             self.connection.commit()
 
     def test_course_custom_static_url_page_content_if_course_not_exists(self):
+        user, _ = self.add_sample_user_to_test_db()
+        self.sign_user_into_session(user)
+
         response = self.test_client.get("/cpsc-236-f24/custom-page/")
         self.assertEqual(response.status_code, 404)
 
@@ -800,14 +805,17 @@ This is the home page.
 
         for path in paths:
             with self.subTest(path=path):
-                def assertion_callback(_):
+                def assertion_callback(role: Role):
                     full_request_path = course.starting_url_path + path
                     if not full_request_path.endswith("/"):
                         full_request_path += "/"
                     full_request_path += "delete/"
 
                     result = self.test_client.post(full_request_path)
-                    self.assertEqual(result.status_code, 404)
+                    if role == Role.STUDENT:
+                        self.assertEqual(result.status_code, 401)
+                    else:
+                        self.assertEqual(result.status_code, 404)
 
                 self.execute_assertions_callback_based_on_roles_and_enrollment(
                     user=user,
