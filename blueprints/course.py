@@ -5,16 +5,14 @@ from typing import Optional
 
 import markdown2
 from bs4 import BeautifulSoup
-from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash
+from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash, g
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
-from flask_helpers import get_user_from_session
-from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
+from flask_decorators import requires_login, requires_course_enrollment, requires_course_page
+from flask_repository_getters import get_content_repository
 from models.course import Course
 from models.course_enrollment import Role
-from models.page import VisibilitySetting, Page
-from models.page_navigation_link import PageNavigationLink
-from models.user import User
+from models.page import Page
 
 course_bp = Blueprint("course", __name__)
 
@@ -33,57 +31,13 @@ def generate_html_from_markdown(page: Page, course: Course):
     page_html_content = soup.prettify()
     return page_html_content
 
-def render_static_page_template_based_on_role(course: Course, user: User, page: Page, role: Role, page_navigation_links: list[PageNavigationLink]):
-    if not page:
-        return render_template(
-            "course_static_page.html",
-            course=course,
-            user=user,
-            role=role,
-            page_navigation_links=page_navigation_links,
-            page_html_content="<p>This page does not exist within the course.</p>",
-        ), 404
-    elif page.page_visibility_setting == VisibilitySetting.HIDDEN \
-            and role == Role.STUDENT:
-        return render_template(
-            "course_static_page.html",
-            course=course,
-            user=user,
-            role=role,
-            page_navigation_links=page_navigation_links,
-            page_html_content="<p>This page is hidden.</p>"
-        ), 401
-
-    page_html_content = generate_html_from_markdown(page, course)
-
-    return render_template(
-        "course_static_page.html",
-        course=course,
-        user=user,
-        role=role,
-        page_html_content=page_html_content,
-        page=page,
-        page_navigation_links=page_navigation_links,
-    )
-
 @course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
 def course_create_new_page(course_url: str):
-    user = get_user_from_session()
-    course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
-
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role or role == Role.STUDENT:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be an editor to use this endpoint."
-        ), 401
+    user = g.user
+    course = g.course
+    role = g.role
 
     if request.method == "GET":
         return render_template(
@@ -136,86 +90,51 @@ def course_create_new_page(course_url: str):
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.STUDENT)
+@requires_course_page(custom_path_routing_arg_key="custom_static_path", custom_path_is_required=False)
 def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
-    user = get_user_from_session()
-    course_repo = get_course_repository()
+    user = g.user
+    course = g.course
+    role = g.role
+    page = g.page
+    page_navigation_links = g.nav_links
 
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
+    page_html_content = generate_html_from_markdown(page, course)
 
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be enrolled in this course to see it."
-        ), 401
-
-    content_repository = get_content_repository()
-    if custom_static_path:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/" + custom_static_path
-        )
-    else:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/"
-        )
-
-    page_navigation_links = content_repository.generate_listed_page_navigation_link_tree_for_course_id(
-        course.course_id
-    )
-
-    # TODO extract all 401, 404 logic into middleware or @decorators?
-    return render_static_page_template_based_on_role(
+    return render_template(
+        "course_static_page.html",
         role=role,
         course=course,
         page=page,
         user=user,
-        page_navigation_links=page_navigation_links
+        page_navigation_links=page_navigation_links,
+        page_html_content=page_html_content
     )
 
 @course_bp.route("/<string:course_url>/delete/", methods=["POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/delete/", methods=["POST"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+@requires_course_page(custom_path_routing_arg_key="custom_static_path", custom_path_is_required=False)
 def course_delete_page(course_url: str, custom_static_path: Optional[str] = None):
-    user = get_user_from_session()
-    course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
-
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be enrolled in this course to see it."
-        ), 401
+    user = g.user
+    course = g.course
+    role = g.role
+    page = g.page
 
     content_repository = get_content_repository()
-    if custom_static_path:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/" + custom_static_path
-        )
-    else:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/"
-        )
 
     if not page:
         return render_template("404.html"), 404
 
-    if role == Role.STUDENT:
-        flash("You don't have permission to delete this page.")
+    try:
+        content_repository.delete_page_by_id(page.page_id)
+        flash(f"Page at {page.url_path_after_course_path} was deleted.")
+        return redirect(course.starting_url_path)
+    except NotFoundException:
+        flash(f"Page was not found. Someone else may have deleted it already.")
+
         page_html_content = generate_html_from_markdown(page, course)
         return render_template(
             "course_static_page.html",
@@ -224,56 +143,19 @@ def course_delete_page(course_url: str, custom_static_path: Optional[str] = None
             user=user,
             role=role,
             page_html_content=page_html_content,
-        ), 401
-    else:
-        try:
-            content_repository.delete_page_by_id(page.page_id)
-            flash(f"Page at {page.url_path_after_course_path} was deleted.")
-            return redirect(course.starting_url_path)
-        except NotFoundException:
-            flash(f"Page was not found. Someone else may have deleted it already.")
-
-            page_html_content = generate_html_from_markdown(page, course)
-            return render_template(
-                "course_static_page.html",
-                course=course,
-                page=page,
-                user=user,
-                role=role,
-                page_html_content=page_html_content,
-            ), 404
-
+        ), 404
 
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+@requires_course_page(custom_path_routing_arg_key="custom_static_path", custom_path_is_required=False)
 def course_custom_static_url_edit_page(course_url: str, custom_static_path: Optional[str] = None):
-    user = get_user_from_session()
-    course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
-
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role or role == Role.STUDENT:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be an editor to use this endpoint."
-        ), 401
-
-    content_repository = get_content_repository()
-    if custom_static_path:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(course_id=course.course_id, url_path="/" + custom_static_path)
-    else:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(course_id=course.course_id, url_path="/")
-
-    if not page:
-        return render_template(
-            "404.html",
-        ), 404
+    user = g.user
+    course = g.course
+    page = g.page
+    role = g.role
+    nav_links = g.nav_links
 
     def render_edit_template_with_optional_error(error: Optional[str] = None):
         return render_template(
@@ -283,6 +165,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
             role=role,
             course=course,
             error=error,
+            page_navigation_links=nav_links,
             **asdict(page)
         )
 
@@ -303,7 +186,6 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
 
             return redirect(course.starting_url_path + page_to_update.url_path_after_course_path)
 
-        # TODO move logic to shared method and make it work for home page
         # TODO create test cases for each error type
         # TODO PLEASE give better error messages, these are super vague right now
         except NotFoundException as e:
