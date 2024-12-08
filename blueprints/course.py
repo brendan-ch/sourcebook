@@ -155,6 +155,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
     course = g.course
     page = g.page
     role = g.role
+    nav_links = g.nav_links
 
     def render_edit_template_with_optional_error(error: Optional[str] = None):
         return render_template(
@@ -164,6 +165,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
             role=role,
             course=course,
             error=error,
+            page_navigation_links=nav_links,
             **asdict(page)
         )
 
