@@ -136,13 +136,11 @@ def course_create_new_page(course_url: str):
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
 @requires_login(should_redirect=False)
+@requires_course(routing_argument_key="course_url")
 def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
+    course = g.course
     course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
 
     role = None
     if user:
@@ -182,13 +180,11 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
 @course_bp.route("/<string:course_url>/delete/", methods=["POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/delete/", methods=["POST"])
 @requires_login(should_redirect=False)
+@requires_course(routing_argument_key="course_url")
 def course_delete_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
+    course = g.course
     course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
 
     role = None
     if user:
@@ -248,13 +244,11 @@ def course_delete_page(course_url: str, custom_static_path: Optional[str] = None
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
+@requires_course(routing_argument_key="course_url")
 def course_custom_static_url_edit_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
+    course = g.course
     course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
 
     role = None
     if user:
