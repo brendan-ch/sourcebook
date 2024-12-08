@@ -22,15 +22,15 @@ def requires_login(should_redirect: bool):
         return decorated_function
     return decorator
 
-def requires_course(routing_argument_key: str):
+def requires_course(course_url_routing_arg_key: str):
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if routing_argument_key not in kwargs:
-                raise ValueError(f"key {routing_argument_key} must be provided as Flask routing argument")
+            if course_url_routing_arg_key not in kwargs:
+                raise ValueError(f"key {course_url_routing_arg_key} must be provided as Flask routing argument")
 
             course_repo = get_course_repository()
-            course = course_repo.get_course_by_starting_url_if_exists("/" + kwargs[routing_argument_key])
+            course = course_repo.get_course_by_starting_url_if_exists("/" + kwargs[course_url_routing_arg_key])
             if not course:
                 return render_template("404.html"), 404
 
@@ -38,5 +38,4 @@ def requires_course(routing_argument_key: str):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
-
 

@@ -68,7 +68,7 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
 
 @course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
-@requires_course(routing_argument_key="course_url")
+@requires_course(course_url_routing_arg_key="course_url")
 def course_create_new_page(course_url: str):
     user = g.user
     course = g.course
@@ -136,7 +136,7 @@ def course_create_new_page(course_url: str):
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
 @requires_login(should_redirect=False)
-@requires_course(routing_argument_key="course_url")
+@requires_course(course_url_routing_arg_key="course_url")
 def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
@@ -180,7 +180,7 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
 @course_bp.route("/<string:course_url>/delete/", methods=["POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/delete/", methods=["POST"])
 @requires_login(should_redirect=False)
-@requires_course(routing_argument_key="course_url")
+@requires_course(course_url_routing_arg_key="course_url")
 def course_delete_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
@@ -244,7 +244,7 @@ def course_delete_page(course_url: str, custom_static_path: Optional[str] = None
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
-@requires_course(routing_argument_key="course_url")
+@requires_course(course_url_routing_arg_key="course_url")
 def course_custom_static_url_edit_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
