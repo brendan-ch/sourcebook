@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash, g
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
-from flask_decorators import requires_login, requires_course_enrollment
+from flask_decorators import requires_login, requires_course_enrollment, requires_course_page
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
 from models.course import Course
 from models.course_enrollment import Role
@@ -127,28 +127,14 @@ def course_create_new_page(course_url: str):
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
 @requires_login(should_redirect=False)
 @requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.STUDENT)
+@requires_course_page(custom_path_routing_arg_key="custom_static_path", custom_path_is_required=False)
 def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
     role = g.role
+    page = g.page
+    page_navigation_links = g.nav_links
 
-    content_repository = get_content_repository()
-    if custom_static_path:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/" + custom_static_path
-        )
-    else:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/"
-        )
-
-    page_navigation_links = content_repository.generate_listed_page_navigation_link_tree_for_course_id(
-        course.course_id
-    )
-
-    # TODO extract all 401, 404 logic into middleware or @decorators?
     return render_static_page_template_based_on_role(
         role=role,
         course=course,
@@ -161,22 +147,14 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/delete/", methods=["POST"])
 @requires_login(should_redirect=False)
 @requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+@requires_course_page(custom_path_routing_arg_key="custom_static_path", custom_path_is_required=False)
 def course_delete_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
     role = g.role
+    page = g.page
 
     content_repository = get_content_repository()
-    if custom_static_path:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/" + custom_static_path
-        )
-    else:
-        page = content_repository.get_page_by_url_and_course_id_if_exists(
-            course_id=course.course_id,
-            url_path="/"
-        )
 
     if not page:
         return render_template("404.html"), 404
@@ -209,7 +187,6 @@ def course_delete_page(course_url: str, custom_static_path: Optional[str] = None
                 role=role,
                 page_html_content=page_html_content,
             ), 404
-
 
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
@@ -269,7 +246,6 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
 
             return redirect(course.starting_url_path + page_to_update.url_path_after_course_path)
 
-        # TODO move logic to shared method and make it work for home page
         # TODO create test cases for each error type
         # TODO PLEASE give better error messages, these are super vague right now
         except NotFoundException as e:
