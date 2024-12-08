@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash, g
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
-from flask_decorators import requires_login, requires_course
+from flask_decorators import requires_login, requires_course_enrollment
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
 from models.course import Course
 from models.course_enrollment import Role
@@ -68,21 +68,11 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
 
 @course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
-@requires_course(course_url_routing_arg_key="course_url")
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
 def course_create_new_page(course_url: str):
     user = g.user
     course = g.course
-    course_repo = get_course_repository()
-
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role or role == Role.STUDENT:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be an editor to use this endpoint."
-        ), 401
+    role = g.role
 
     if request.method == "GET":
         return render_template(
@@ -136,21 +126,11 @@ def course_create_new_page(course_url: str):
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
 @requires_login(should_redirect=False)
-@requires_course(course_url_routing_arg_key="course_url")
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.STUDENT)
 def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
-    course_repo = get_course_repository()
-
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be enrolled in this course to see it."
-        ), 401
+    role = g.role
 
     content_repository = get_content_repository()
     if custom_static_path:
@@ -180,21 +160,11 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
 @course_bp.route("/<string:course_url>/delete/", methods=["POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/delete/", methods=["POST"])
 @requires_login(should_redirect=False)
-@requires_course(course_url_routing_arg_key="course_url")
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
 def course_delete_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
-    course_repo = get_course_repository()
-
-    role = None
-    if user:
-        role = course_repo.get_user_role_in_class_if_exists(user.user_id, course.course_id)
-
-    if not role:
-        return render_template(
-            "401.html",
-            custom_error_message="You need to be enrolled in this course to see it."
-        ), 401
+    role = g.role
 
     content_repository = get_content_repository()
     if custom_static_path:
@@ -244,7 +214,7 @@ def course_delete_page(course_url: str, custom_static_path: Optional[str] = None
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
-@requires_course(course_url_routing_arg_key="course_url")
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
 def course_custom_static_url_edit_page(course_url: str, custom_static_path: Optional[str] = None):
     user = g.user
     course = g.course
