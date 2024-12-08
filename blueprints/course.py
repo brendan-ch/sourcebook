@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash, g
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
-from flask_decorators import requires_login
+from flask_decorators import requires_login, requires_course
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
 from models.course import Course
 from models.course_enrollment import Role
@@ -68,13 +68,11 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
 
 @course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
+@requires_course(routing_argument_key="course_url")
 def course_create_new_page(course_url: str):
     user = g.user
+    course = g.course
     course_repo = get_course_repository()
-
-    course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
-    if not course:
-        return render_template("404.html"), 404
 
     role = None
     if user:
