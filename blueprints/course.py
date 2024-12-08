@@ -5,10 +5,10 @@ from typing import Optional
 
 import markdown2
 from bs4 import BeautifulSoup
-from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash
+from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash, g
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
-from flask_helpers import get_user_from_session
+from flask_decorators import requires_login
 from flask_repository_getters import get_course_repository, get_user_repository, get_content_repository
 from models.course import Course
 from models.course_enrollment import Role
@@ -67,8 +67,9 @@ def render_static_page_template_based_on_role(course: Course, user: User, page: 
     )
 
 @course_bp.route("/<string:course_url>/new/", methods=["GET", "POST"])
+@requires_login(should_redirect=False)
 def course_create_new_page(course_url: str):
-    user = get_user_from_session()
+    user = g.user
     course_repo = get_course_repository()
 
     course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
@@ -136,8 +137,9 @@ def course_create_new_page(course_url: str):
 
 @course_bp.route("/<string:course_url>/", methods=["GET"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/", methods=["GET"])
+@requires_login(should_redirect=False)
 def course_custom_static_url_page(course_url: str, custom_static_path: Optional[str] = None):
-    user = get_user_from_session()
+    user = g.user
     course_repo = get_course_repository()
 
     course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
@@ -181,8 +183,9 @@ def course_custom_static_url_page(course_url: str, custom_static_path: Optional[
 
 @course_bp.route("/<string:course_url>/delete/", methods=["POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/delete/", methods=["POST"])
+@requires_login(should_redirect=False)
 def course_delete_page(course_url: str, custom_static_path: Optional[str] = None):
-    user = get_user_from_session()
+    user = g.user
     course_repo = get_course_repository()
 
     course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)
@@ -246,8 +249,9 @@ def course_delete_page(course_url: str, custom_static_path: Optional[str] = None
 
 @course_bp.route("/<string:course_url>/edit/", methods=["GET", "POST"])
 @course_bp.route("/<string:course_url>/<path:custom_static_path>/edit/", methods=["GET", "POST"])
+@requires_login(should_redirect=False)
 def course_custom_static_url_edit_page(course_url: str, custom_static_path: Optional[str] = None):
-    user = get_user_from_session()
+    user = g.user
     course_repo = get_course_repository()
 
     course = course_repo.get_course_by_starting_url_if_exists("/" + course_url)

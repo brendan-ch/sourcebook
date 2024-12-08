@@ -1,23 +1,21 @@
-from flask import Blueprint, render_template, request, session, redirect, flash
+from flask import Blueprint, render_template, request, session, redirect, flash, g
 
+from flask_decorators import requires_login
 from flask_helpers import get_user_from_session
 from flask_repository_getters import get_user_repository, get_course_repository
 
 index_bp = Blueprint("index", __name__)
 
 @index_bp.route("/")
+@requires_login(should_redirect=True)
 def your_classes_page():
-    user = get_user_from_session()
-    if not user:
-        return redirect("/sign-in")
-
     course_repository = get_course_repository()
-    course_terms_with_courses = course_repository.get_course_terms_with_courses_for_user_id(user.user_id)
+    course_terms_with_courses = course_repository.get_course_terms_with_courses_for_user_id(g.user.user_id)
 
     return render_template(
         "your_classes.html",
         course_terms_with_courses=course_terms_with_courses,
-        current_user=user,
+        current_user=g.user,
     )
 
 @index_bp.route("/sign-in", methods=["GET", "POST"])
