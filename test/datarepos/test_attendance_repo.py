@@ -71,7 +71,7 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         WHERE atr.attendance_session_id = %s
         '''
 
-        cursor.execute(check_session_query, params)
+        cursor.execute(check_records_query, params)
         results = cursor.fetchall()
         returned_records = [AttendanceRecord(**result) for result in results]
 
