@@ -3,7 +3,7 @@ from models.attendance_record import AttendanceRecordStatus
 
 
 class AttendanceRepo(Repo):
-    def start_new_attendance_session_and_get_id(self, class_id: int):
+    def start_new_attendance_session_and_get_id(self, course_id: int):
         pass
 
     def close_in_progress_session(self, attendance_session_id: int):
