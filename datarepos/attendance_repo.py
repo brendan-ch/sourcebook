@@ -1,5 +1,5 @@
 from datarepos.repo import Repo
-from models.attendance_record import AttendanceRecordStatus
+from models.attendance_record import AttendanceRecordStatus, AttendanceRecord
 
 
 class AttendanceRepo(Repo):
@@ -15,5 +15,5 @@ class AttendanceRepo(Repo):
     def edit_attendance_session_title(self, attendance_session_id: int, new_title: str):
         pass
 
-    def update_attendance_record_status(self, user_id: int, attendance_session_id: int, status: AttendanceRecordStatus):
+    def update_status_by_attendance_session_and_user_id(self, attendance_record: AttendanceRecord):
         pass
