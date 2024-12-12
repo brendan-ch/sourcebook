@@ -3,6 +3,7 @@ from enum import Enum
 
 
 class AttendanceRecordStatus(Enum):
+    NONE = 0,
     PRESENT = 1,
     LATE = 2,
     ABSENT = 3,
