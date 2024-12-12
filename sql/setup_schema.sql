@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS attendance_session (
 CREATE TABLE IF NOT EXISTS attendance_record (
     user_id INT NOT NULL,
     attendance_session_id INT NOT NULL,
+    attendance_status INT NOT NULL,
 
     PRIMARY KEY (user_id, attendance_session_id),
     FOREIGN KEY (user_id) REFERENCES user(user_id),
