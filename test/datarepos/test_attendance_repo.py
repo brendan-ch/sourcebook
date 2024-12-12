@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from datarepos.attendance_repo import AttendanceRepo
 from models.attendance_record import AttendanceRecord, AttendanceRecordStatus
 from models.attendance_session import AttendanceSession
@@ -10,10 +12,9 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         super().setUp()
         self.attendance_repo = AttendanceRepo(self.connection)
 
-    def test_start_new_attendance_session_and_get_id(self):
+    def add_course_and_users_for_attendance_test(self):
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
-
         users = self.add_many_sample_users_to_test_db()
         for user in users:
             enrollment = CourseEnrollment(
@@ -22,6 +23,10 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
                 role=Role.STUDENT
             )
             self.add_single_enrollment(enrollment)
+        return course, users
+
+    def test_start_new_attendance_session_and_get_id(self):
+        course, users = self.add_course_and_users_for_attendance_test()
 
         session_id = self.attendance_repo.start_new_attendance_session_and_get_id(course.course_id)
 
@@ -63,8 +68,32 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
             self.assertEqual(record.attendance_status, AttendanceRecordStatus.NONE)
 
     def test_close_in_progress_session(self):
-        # Test that a closing time was added to the data
-        pass
+        course, users = self.add_course_and_users_for_attendance_test()
+
+        insert_session_query = '''
+        INSERT INTO attendance_session (course_id, opening_time, closing_time, title) 
+        VALUES (%s, %s, %s, %s)
+        '''
+        params = (course.course_id, datetime.now(), None, "Attendance Session")
+        cursor = self.connection.cursor()
+        cursor.execute(insert_session_query, params)
+        attendance_session_id = cursor.lastrowid
+        self.connection.commit()
+
+        self.attendance_repo.close_in_progress_session(attendance_session_id)
+
+        select_session_query = '''
+        SELECT ats.closing_time
+        FROM attendance_session ats
+        WHERE ats.attendance_session_id = %s
+        '''
+        params = (attendance_session_id,)
+
+        cursor = self.connection.cursor()
+        cursor.execute(select_session_query, params)
+        closing_time, = cursor.fetchone()
+        self.assertIsNotNone(closing_time)
+        self.assertIsInstance(closing_time, datetime)
 
     def test_close_not_in_progress_session(self):
         pass
