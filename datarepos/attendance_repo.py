@@ -10,6 +10,8 @@ class AttendanceRepo(Repo):
     def start_new_attendance_session_and_get_id(self, course_id: int):
         date_format_string = '%Y.%m.%d %H:%M'
 
+        # TODO check if course id doesn't exist
+
         new_session = AttendanceSession(
             course_id=course_id,
             opening_time=datetime.now(),
@@ -63,7 +65,18 @@ class AttendanceRepo(Repo):
             raise e
 
     def close_in_progress_session(self, attendance_session_id: int):
-        pass
+        update_query = '''
+        UPDATE attendance_session ats
+        SET ats.closing_time = %s
+        WHERE ats.attendance_session_id = %s
+            AND ats.closing_time IS NULL
+        '''
+        params = (
+            datetime.now(),
+            attendance_session_id,
+        )
+
+        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def delete_attendance_session_and_records(self, attendance_session_id: int):
         pass
