@@ -1,3 +1,4 @@
+from dataclasses import astuple
 from datetime import datetime
 
 from datarepos.attendance_repo import AttendanceRepo
@@ -24,6 +25,20 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
             )
             self.add_single_enrollment(enrollment)
         return course, users
+
+    def add_single_attendance_session_and_get_id(self, attendance_session):
+        insert_session_query = '''
+        INSERT INTO attendance_session (course_id, title, opening_time, closing_time, attendance_session_id) 
+        VALUES (%s, %s, %s, %s, %s)
+        '''
+        params = astuple(attendance_session)
+
+        cursor = self.connection.cursor()
+        cursor.execute(insert_session_query, params)
+        attendance_session_id = cursor.lastrowid
+        self.connection.commit()
+
+        return attendance_session_id
 
     def test_start_new_attendance_session_and_get_id(self):
         course, users = self.add_course_and_users_for_attendance_test()
@@ -70,16 +85,14 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
     def test_close_in_progress_session(self):
         course, users = self.add_course_and_users_for_attendance_test()
 
-        insert_session_query = '''
-        INSERT INTO attendance_session (course_id, opening_time, closing_time, title) 
-        VALUES (%s, %s, %s, %s)
-        '''
-        params = (course.course_id, datetime.now(), None, "Attendance Session")
-        cursor = self.connection.cursor()
-        cursor.execute(insert_session_query, params)
-        attendance_session_id = cursor.lastrowid
-        self.connection.commit()
+        course_id = course.course_id
+        attendance_session = AttendanceSession(
+            course_id=course_id,
+            opening_time=datetime.now(),
+            title="Attendance Session",
+        )
 
+        attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
         self.attendance_repo.close_in_progress_session(attendance_session_id)
 
         select_session_query = '''
