@@ -130,3 +130,21 @@ class AttendanceRepo(Repo):
 
         self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
+    def get_active_attendance_sessions_from_course_id(self, course_id: int):
+        select_query = '''
+        SELECT ats.title, ats.opening_time, ats.closing_time, ats.attendance_session_id, ats.course_id
+        FROM attendance_session ats
+        WHERE ats.course_id = %s
+            AND ats.closing_time IS NULL
+        ORDER BY ats.opening_time DESC;
+        '''
+        params = (course_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(select_query, params)
+        results = cursor.fetchall()
+
+        return [AttendanceSession(**result) for result in results]
+
+    def get_closed_attendance_sessions(self, course_id: int):
+        pass

@@ -256,3 +256,19 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         attendance_status, = cursor.fetchone()
 
         self.assertEqual(attendance_status, records[0].attendance_status.value)
+
+    def test_get_active_attendance_sessions_from_course_id(self):
+        course, users = self.add_course_and_users_for_attendance_test()
+
+        attendance_session = AttendanceSession(
+            course_id=course.course_id,
+            opening_time=datetime.now(),
+            title="Attendance Session",
+        )
+        attendance_session.attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
+        attendance_session.opening_time = attendance_session.opening_time.replace(microsecond=0)
+
+        returned_sessions = self.attendance_repo.get_active_attendance_sessions_from_course_id(course.course_id)
+        self.assertEqual(len(returned_sessions), 1)
+        self.assertEqual(attendance_session, returned_sessions[0])
+
