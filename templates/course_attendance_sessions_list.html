@@ -13,15 +13,30 @@
 
         <h1>Attendance Sessions</h1>
 
-        {% if attendance_sessions %}
+        {% if active_sessions %}
+            <h2>Active Sessions</h2>
             <ul>
-            {% for session in attendance_sessions %}
+            {% for session in active_sessions %}
                 <li>
                     <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}">
                         {{ session.title }}
                     </a>
                 </li>
             {% endfor %}
+            </ul>
+        {% endif %}
+
+
+        {% if closed_sessions %}
+            <h2>Closed Sessions</h2>
+            <ul>
+                {% for session in closed_sessions %}
+                    <li>
+                        <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}">
+                            {{ session.title }}
+                        </a>
+                    </li>
+                {% endfor %}
             </ul>
         {% endif %}
 
