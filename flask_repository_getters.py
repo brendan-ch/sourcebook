@@ -3,6 +3,7 @@ from typing import Optional
 import mysql.connector
 from flask import g, current_app
 
+from datarepos.attendance_repo import AttendanceRepo
 from datarepos.content_repo import ContentRepo
 from datarepos.course_repo import CourseRepo
 from datarepos.user_repo import UserRepo
@@ -38,4 +39,15 @@ def get_course_repository():
 
         connection = mysql.connector.connect(**config)
         repository = g._course_repository = CourseRepo(connection)
+    return repository
+
+def get_attendance_repository():
+    repository: Optional[AttendanceRepo] = getattr(g, '_attendance_repository', None)
+    if not repository or not repository.connection_is_open:
+        config = vars(current_app.config["DB_CONFIG_OBJECT"])
+        if not config:
+            raise RuntimeError("No database configured.")
+
+        connection = mysql.connector.connect(**config)
+        repository = g._attendance_repo = AttendanceRepo(connection)
     return repository

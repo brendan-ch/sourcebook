@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS attendance_session (
     attendance_session_id INT PRIMARY KEY AUTO_INCREMENT,
     course_id INT NOT NULL,
     opening_time DATETIME NOT NULL,
-    closing_time DATETIME NOT NULL,
+    closing_time DATETIME,
 
     -- optional user-friendly title
     title VARCHAR(128),
@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS attendance_session (
 CREATE TABLE IF NOT EXISTS attendance_record (
     user_id INT NOT NULL,
     attendance_session_id INT NOT NULL,
+    attendance_status INT NOT NULL,
 
     PRIMARY KEY (user_id, attendance_session_id),
     FOREIGN KEY (user_id) REFERENCES user(user_id),
