@@ -10,3 +10,5 @@ class DependencyException(Exception):
     pass
 
 
+class InvalidDatabaseUpdateException(Exception):
+    pass
