@@ -65,9 +65,12 @@ def export_student_count_per_class():
     query = '''
     SELECT course.course_id, course.title, course.user_friendly_class_code, COUNT(enrollment.user_id)
     FROM course
-    INNER JOIN enrollment
-        ON course.course_id = enrollment.course_id
-    WHERE enrollment.role = 1
+    INNER JOIN (
+        SELECT enrollment.course_id, enrollment.user_id
+        FROM enrollment
+        WHERE enrollment.role = 1
+    ) as filtered_enrollments
+        ON course.course_id = filtered_enrollments.course_id
     GROUP BY course.course_id
     '''
 
