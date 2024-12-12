@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, session, abort, request, redirect,
 
 from custom_exceptions import AlreadyExistsException, NotFoundException
 from flask_decorators import requires_login, requires_course_enrollment, requires_course_page
-from flask_repository_getters import get_content_repository
+from flask_repository_getters import get_content_repository, get_attendance_repository
 from models.course import Course
 from models.course_enrollment import Role
 from models.page import Page
@@ -209,3 +209,24 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
                 error="There was an issue parsing your response. Please try again later."
             ), 400
 
+@course_bp.route("/<string:course_url>/attendance/", methods=["GET"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_session_list_page(course_url: str):
+    user = g.user
+    course = g.course
+    role = g.role
+
+    attendance_repo = get_attendance_repository()
+
+    active_sessions = attendance_repo.get_active_attendance_sessions_from_course_id(course.course_id)
+    closed_sessions = attendance_repo.get_closed_attendance_sessions_from_course_id(course.course_id)
+
+    return render_template(
+        "course_attendance_sessions_list.html",
+        course=course,
+        user=user,
+        role=role,
+        active_sessions=active_sessions,
+        closed_sessions=closed_sessions,
+    )

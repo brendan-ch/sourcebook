@@ -1,0 +1,44 @@
+{% extends 'course_layout.html' %}
+{% block header %}
+    {{ super() }}
+    <title>Attendance</title>
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+    <main>
+        <form method="post">
+            <button>[Create new session]</button>
+        </form>
+
+        <h1>Attendance Sessions</h1>
+
+        {% if active_sessions %}
+            <h2>Active Sessions</h2>
+            <ul>
+            {% for session in active_sessions %}
+                <li>
+                    <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}">
+                        {{ session.title }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+
+        {% if closed_sessions %}
+            <h2>Closed Sessions</h2>
+            <ul>
+                {% for session in closed_sessions %}
+                    <li>
+                        <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}">
+                            {{ session.title }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+    </main>
+{% endblock %}
