@@ -8,5 +8,5 @@ class AttendanceSession:
     course_id: int
     title: str
     opening_time: datetime
-    closing_time: Optional[datetime]
-    attendance_session_id: Optional[int]
+    closing_time: Optional[datetime] = None
+    attendance_session_id: Optional[int] = None
