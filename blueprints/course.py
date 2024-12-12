@@ -209,3 +209,17 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
                 error="There was an issue parsing your response. Please try again later."
             ), 400
 
+@course_bp.route("/<string:course_url>/attendance/", methods=["GET"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_session_list_page(course_url: str):
+    user = g.user
+    course = g.course
+    role = g.role
+
+    return render_template(
+        "course_attendance_sessions_list.html",
+        course=course,
+        user=user,
+        role=role
+    )

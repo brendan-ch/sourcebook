@@ -1,0 +1,29 @@
+{% extends 'course_layout.html' %}
+{% block header %}
+    {{ super() }}
+    <title>Attendance</title>
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+    <main>
+        <form method="post">
+            <button>[Create new session]</button>
+        </form>
+
+        <h1>Attendance Sessions</h1>
+
+        {% if attendance_sessions %}
+            <ul>
+            {% for session in attendance_sessions %}
+                <li>
+                    <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}">
+                        {{ session.title }}
+                    </a>
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+
+    </main>
+{% endblock %}
