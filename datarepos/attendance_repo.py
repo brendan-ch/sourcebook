@@ -116,4 +116,17 @@ class AttendanceRepo(Repo):
         self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def update_status_by_attendance_session_and_user_id(self, attendance_record: AttendanceRecord):
-        pass
+        update_query = '''
+        UPDATE attendance_record atr
+        SET atr.attendance_status = %s
+        WHERE atr.attendance_session_id = %s
+            AND atr.user_id = %s
+        '''
+        params = (
+            attendance_record.attendance_status.value,
+            attendance_record.attendance_session_id,
+            attendance_record.user_id,
+        )
+
+        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
+
