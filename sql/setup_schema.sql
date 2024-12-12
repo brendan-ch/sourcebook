@@ -84,8 +84,8 @@ CREATE TABLE IF NOT EXISTS page_file_bridge (
 CREATE TABLE IF NOT EXISTS attendance_session (
     attendance_session_id INT PRIMARY KEY AUTO_INCREMENT,
     course_id INT NOT NULL,
-    opening_time DATETIME NOT NULL,
-    closing_time DATETIME,
+    opening_time DATETIME(6) NOT NULL,
+    closing_time DATETIME(6),
 
     -- optional user-friendly title
     title VARCHAR(128),
