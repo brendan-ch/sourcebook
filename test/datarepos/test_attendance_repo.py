@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from custom_exceptions import InvalidDatabaseUpdateException
 from datarepos.attendance_repo import AttendanceRepo
+from models import attendance_record
 from models.attendance_record import AttendanceRecord, AttendanceRecordStatus
 from models.attendance_session import AttendanceSession
 from models.course_enrollment import CourseEnrollment, Role
@@ -194,7 +195,32 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         self.assertEqual(len(results), 0)
 
     def test_edit_attendance_session_title(self):
-        pass
+        course, users = self.add_course_and_users_for_attendance_test()
+        course_id = course.course_id
+
+        attendance_session = AttendanceSession(
+            course_id=course_id,
+            opening_time=datetime.now(),
+            title="Attendance Session",
+        )
+        attendance_session.attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
+
+        self.attendance_repo.edit_attendance_session_title(
+            attendance_session_id=attendance_session.attendance_session_id,
+            new_title="New Title"
+        )
+
+        check_new_title_query = '''
+        SELECT ats.title
+        FROM attendance_session ats
+        WHERE ats.attendance_session_id = %s
+        '''
+        params = (attendance_session.attendance_session_id,)
+
+        cursor = self.connection.cursor()
+        cursor.execute(check_new_title_query, params)
+        new_title, = cursor.fetchone()
+        self.assertEqual(new_title, "New Title")
 
     def test_update_attendance_record_status(self):
         pass
