@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import astuple
 from pathlib import Path
 from os import system
 
@@ -64,6 +65,57 @@ class TestWithDatabaseContainer(unittest.TestCase):
 
         command = f'mysql -u root -p{TEST_ROOT_PASSWORD} --host={'127.0.0.1' if host == 'localhost' else host} --port={port} {database} < "{teardown_sql_file_path}"'
         system(command)
+
+    def add_many_sample_users_to_test_db(self):
+        add_query = '''
+        INSERT INTO user (user_id, full_name, email, hashed_password)
+        VALUES (%s, %s, %s, %s)
+        '''
+
+        users = [
+            User(user_id=1,
+                 full_name="Test User 1",
+                 email="email1@example.com"),
+            User(user_id=2,
+                 full_name="Test User 2",
+                 email="email2@example.com"),
+            User(user_id=3,
+                 full_name="Test User 3",
+                 email="email3@example.com"),
+            User(user_id=4,
+                 full_name="Test User 4",
+                 email="email4@example.com"),
+            User(user_id=5,
+                 full_name="Test User 5",
+                 email="email5@example.com"),
+        ]
+
+        sample_password = "C4x6Fc4YbxUsWtz.Luj*ECo*xv@xGkQXv_h.-khVXqvAkmgiZgCoBn*Kj_.C-e9@"
+        hashed_password = generate_password_hash(sample_password)
+
+        cursor = self.connection.cursor()
+        for user in users:
+            params = (
+                user.user_id,
+                user.full_name,
+                user.email,
+                hashed_password
+            )
+
+            cursor.execute(add_query, params)
+
+        select_uuid_query = '''
+        SELECT user.user_uuid
+        FROM user
+        WHERE user.user_id = %s
+        '''
+
+        for user in users:
+            cursor.execute(select_uuid_query, (user.user_id,))
+            user.user_uuid, = cursor.fetchone()
+
+        self.connection.commit()
+        return users
 
     def add_sample_user_to_test_db(self):
         new_user = User(user_id=1,

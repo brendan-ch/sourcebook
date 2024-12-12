@@ -8,6 +8,9 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         self.attendance_repo = AttendanceRepo(self.connection)
 
     def test_start_new_attendance_session_and_get_id(self):
+        courses, _ = self.add_sample_course_term_and_course_cluster()
+        users = self.add_many_sample_users_to_test_db()
+
         # Check that a new session was created
         # Check that attendance records were created for
         # every student enrolled in the class
