@@ -1,7 +1,7 @@
 from dataclasses import astuple
 from datetime import datetime, timedelta
 
-from custom_exceptions import InvalidDatabaseUpdateException
+from custom_exceptions import InvalidDatabaseUpdateException, NotFoundException
 from datarepos.attendance_repo import AttendanceRepo
 from models import attendance_record
 from models.attendance_record import AttendanceRecord, AttendanceRecordStatus
@@ -144,7 +144,7 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
 
         attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
 
-        with self.assertRaises(InvalidDatabaseUpdateException):
+        with self.assertRaises(NotFoundException):
             self.attendance_repo.close_in_progress_session(attendance_session_id)
 
     def test_delete_attendance_session_and_records(self):
