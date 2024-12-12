@@ -103,7 +103,17 @@ class AttendanceRepo(Repo):
 
 
     def edit_attendance_session_title(self, attendance_session_id: int, new_title: str):
-        pass
+        update_query = '''
+        UPDATE attendance_session ats
+        SET ats.title = %s
+        WHERE ats.attendance_session_id = %s
+        '''
+        params = (
+            new_title,
+            attendance_session_id,
+        )
+
+        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def update_status_by_attendance_session_and_user_id(self, attendance_record: AttendanceRecord):
         pass
