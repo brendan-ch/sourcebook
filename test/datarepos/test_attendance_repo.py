@@ -1,5 +1,5 @@
 from dataclasses import astuple
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from datarepos.attendance_repo import AttendanceRepo
 from models.attendance_record import AttendanceRecord, AttendanceRecordStatus
@@ -109,7 +109,20 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         self.assertIsInstance(closing_time, datetime)
 
     def test_close_not_in_progress_session(self):
-        pass
+        course, users = self.add_course_and_users_for_attendance_test()
+
+        course_id = course.course_id
+        attendance_session = AttendanceSession(
+            course_id=course_id,
+            opening_time=datetime.now(),
+            closing_time=datetime.now() + timedelta(hours=2),
+            title="Attendance Session",
+        )
+
+        attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
+
+        with self.assertRaises(Exception):
+            self.attendance_repo.close_in_progress_session(attendance_session_id)
 
     def test_delete_attendance_session_and_records(self):
         pass
