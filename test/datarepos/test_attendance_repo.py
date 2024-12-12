@@ -1,7 +1,7 @@
 from dataclasses import astuple
 from datetime import datetime, timedelta
 
-from custom_exceptions import InvalidDatabaseUpdateException, NotFoundException
+from custom_exceptions import NotFoundException
 from datarepos.attendance_repo import AttendanceRepo
 from models import attendance_record
 from models.attendance_record import AttendanceRecord, AttendanceRecordStatus
