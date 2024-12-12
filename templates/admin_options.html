@@ -1,0 +1,13 @@
+{% extends 'base_layout.html' %}
+{% block header %}
+    {{ super() }}
+    <title>Admin Options</title>
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+    <h1>Admin Options</h1>
+    <form action="/generate-export" method="post">
+        <button>Generate CSV export</button>
+    </form>
+{% endblock %}
