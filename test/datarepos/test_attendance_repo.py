@@ -7,12 +7,14 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         super().setUp()
         self.attendance_repo = AttendanceRepo(self.connection)
 
-    def test_start_new_attendance_session(self):
+    def test_start_new_attendance_session_and_get_id(self):
+        # Check that a new session was created
         # Check that attendance records were created for
         # every student enrolled in the class
         pass
 
     def test_close_in_progress_session(self):
+        # Test that a closing time was added to the data
         pass
 
     def test_close_not_in_progress_session(self):
