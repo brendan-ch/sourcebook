@@ -146,5 +146,18 @@ class AttendanceRepo(Repo):
 
         return [AttendanceSession(**result) for result in results]
 
-    def get_closed_attendance_sessions(self, course_id: int):
-        pass
+    def get_closed_attendance_sessions_from_course_id(self, course_id: int):
+        select_query = '''
+        SELECT ats.title, ats.opening_time, ats.closing_time, ats.attendance_session_id, ats.course_id
+        FROM attendance_session ats
+        WHERE ats.course_id = %s
+            AND ats.closing_time IS NOT NULL
+        ORDER BY ats.opening_time DESC;
+        '''
+        params = (course_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(select_query, params)
+        results = cursor.fetchall()
+
+        return [AttendanceSession(**result) for result in results]
