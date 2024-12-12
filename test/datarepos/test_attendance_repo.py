@@ -80,7 +80,7 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         '''
         params = (session_id,)
 
-        cursor = self.connection.cursor()
+        cursor = self.connection.cursor(dictionary=True)
         cursor.execute(check_session_query, params)
         result = cursor.fetchone()
         returned_session = AttendanceSession(**result)
