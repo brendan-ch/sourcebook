@@ -3,6 +3,7 @@ from typing import Optional
 
 from flask import Flask
 
+from blueprints.admin import admin_bp
 from blueprints.course import course_bp
 from blueprints.index import index_bp
 from config import FLASK_APP_SECRET_KEY, DATABASE_HOST, DATABASE_SCHEMA_NAME, DATABASE_USER, DATABASE_PASSWORD, \
@@ -23,9 +24,12 @@ def create_app(is_admin_app = False, custom_db_config: Optional[DBConnectionDeta
             port=DATABASE_PORT
         )
 
-    # TODO register a different set of blueprints for admins
-    app.register_blueprint(index_bp)
-    app.register_blueprint(course_bp)
+    if is_admin_app:
+        app.register_blueprint(admin_bp)
+
+    else:
+        app.register_blueprint(index_bp)
+        app.register_blueprint(course_bp)
 
     app.config["DB_CONFIG_OBJECT"] = custom_db_config
 
@@ -33,7 +37,8 @@ def create_app(is_admin_app = False, custom_db_config: Optional[DBConnectionDeta
 
 if __name__ == "__main__":
     if sys.argv[-1] == "--admin":
-        print("admin")
+        app = create_app(is_admin_app=True)
+    else:
+        app = create_app()
 
-    app = create_app()
     app.run()
