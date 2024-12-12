@@ -10,4 +10,12 @@
     <form action="/generate-export" method="post">
         <button>Generate CSV export</button>
     </form>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+                <br>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 {% endblock %}
