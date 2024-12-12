@@ -11,8 +11,8 @@ admin_bp = Blueprint('admin', __name__, url_prefix='')
 def admin_options():
     return render_template("admin_options.html")
 
-@admin_bp.route('/generate-export', methods=['POST'])
-def generate_export():
+@admin_bp.route('/export-tables', methods=['POST'])
+def export_tables():
     content_repo = get_content_repository()
 
     os.makedirs('exports', exist_ok=True)

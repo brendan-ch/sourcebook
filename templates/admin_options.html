@@ -7,8 +7,8 @@
 {% block body %}
     {{ super() }}
     <h1>Admin Options</h1>
-    <form action="/generate-export" method="post">
-        <button>Generate CSV export</button>
+    <form action="/export-tables" method="post">
+        <button>Export all database tables</button>
     </form>
     {% with messages = get_flashed_messages() %}
         {% if messages %}
