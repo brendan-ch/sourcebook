@@ -159,16 +159,7 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         )
         attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
 
-        attendance_records = [
-            AttendanceRecord(
-                attendance_session_id=attendance_session_id,
-                user_id=user.user_id,
-                attendance_status=AttendanceRecordStatus.NONE,
-            )
-            for user in users
-        ]
-        for attendance_record in attendance_records:
-            self.add_single_attendance_record(attendance_record)
+        self.add_student_attendance_records_for_users(attendance_session_id, users)
 
         self.attendance_repo.delete_attendance_session_and_records(attendance_session_id)
 
@@ -193,6 +184,20 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         cursor.execute(check_records_query, params)
         results = cursor.fetchall()
         self.assertEqual(len(results), 0)
+
+    def add_student_attendance_records_for_users(self, attendance_session_id, users):
+        attendance_records = [
+            AttendanceRecord(
+                attendance_session_id=attendance_session_id,
+                user_id=user.user_id,
+                attendance_status=AttendanceRecordStatus.NONE,
+            )
+            for user in users
+        ]
+        for attendance_record in attendance_records:
+            self.add_single_attendance_record(attendance_record)
+
+        return attendance_records
 
     def test_edit_attendance_session_title(self):
         course, users = self.add_course_and_users_for_attendance_test()
@@ -223,5 +228,33 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         self.assertEqual(new_title, "New Title")
 
     def test_update_attendance_record_status(self):
-        pass
+        course, users = self.add_course_and_users_for_attendance_test()
+        course_id = course.course_id
 
+        attendance_session = AttendanceSession(
+            course_id=course_id,
+            opening_time=datetime.now(),
+            title="Attendance Session",
+        )
+        attendance_session.attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
+
+        records = self.add_student_attendance_records_for_users(attendance_session.attendance_session_id, users)
+
+        records[0].attendance_status = AttendanceRecordStatus.PRESENT
+        self.attendance_repo.update_status_by_attendance_session_and_user_id(
+            records[0]
+        )
+
+        check_record_query = '''
+        SELECT atr.attendance_status
+        FROM attendance_record atr
+        WHERE atr.attendance_session_id = %s
+            AND atr.user_id = %s
+        '''
+        params = (attendance_session.attendance_session_id, records[0].user_id)
+
+        cursor = self.connection.cursor()
+        cursor.execute(check_record_query, params)
+        attendance_status, = cursor.fetchone()
+
+        self.assertEqual(attendance_status, records[0].attendance_status.value)
