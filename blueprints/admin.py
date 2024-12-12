@@ -10,7 +10,8 @@ admin_bp = Blueprint('admin', __name__, url_prefix='')
 def generate_one_set_of_exports(
     cursor,
     database_table_name: str,
-    file_name: str
+    file_name: str,
+    header = None
 ):
     get_all_courses_query = f'''SELECT * FROM {database_table_name};'''
 
@@ -18,6 +19,8 @@ def generate_one_set_of_exports(
     result = cursor.fetchall()
 
     writer = csv.writer(open(f'exports/{file_name}', 'w'))
+    if header:
+        writer.writerow(header)
     for line in result:
         writer.writerow(line)
 
@@ -52,12 +55,6 @@ def export_tables():
             file_name=value
         )
 
-    generate_one_set_of_exports(
-        cursor=content_repo.connection.cursor(),
-        database_table_name='user',
-        file_name='users.csv'
-    )
-
     flash('Exports generated under exports directory in project root.')
     return redirect('/')
 
@@ -79,6 +76,7 @@ def export_student_count_per_class():
     result = cursor.fetchall()
 
     writer = csv.writer(open(f'exports/student_count_per_class.csv', 'w'))
+    writer.writerow(['course_id', 'title', 'user_friendly_class_code', 'student_count'])
     for line in result:
         writer.writerow(line)
 
