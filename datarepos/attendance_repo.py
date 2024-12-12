@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from custom_exceptions import NotFoundException
 from datarepos.repo import Repo
 from models.attendance_record import AttendanceRecordStatus, AttendanceRecord
 from models.attendance_session import AttendanceSession
@@ -79,7 +80,27 @@ class AttendanceRepo(Repo):
         self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
 
     def delete_attendance_session_and_records(self, attendance_session_id: int):
-        pass
+        delete_session_query = '''
+        DELETE FROM attendance_session ats
+        WHERE ats.attendance_session_id = %s
+        '''
+        delete_records_query = '''
+        DELETE FROM attendance_record atr
+        WHERE atr.attendance_session_id = %s
+        '''
+        params = (attendance_session_id,)
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(delete_records_query, params)
+            cursor.execute(delete_session_query, params)
+
+            if cursor.rowcount < 1:
+                raise NotFoundException
+            self.connection.commit()
+        except Exception as e:
+            self.connection.rollback()
+            raise e
+
 
     def edit_attendance_session_title(self, attendance_session_id: int, new_title: str):
         pass
