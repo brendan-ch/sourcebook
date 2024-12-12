@@ -1,4 +1,5 @@
 from datarepos.attendance_repo import AttendanceRepo
+from models.attendance_record import AttendanceRecord, AttendanceRecordStatus
 from models.attendance_session import AttendanceSession
 from models.course_enrollment import CourseEnrollment, Role
 from test.test_with_database_container import TestWithDatabaseContainer
@@ -13,11 +14,16 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         courses, _ = self.add_sample_course_term_and_course_cluster()
         course = courses[0]
 
-        session_id = self.attendance_repo.start_new_attendance_session_and_get_id(course.course_id)
+        users = self.add_many_sample_users_to_test_db()
+        for user in users:
+            enrollment = CourseEnrollment(
+                user_id=user.user_id,
+                course_id=course.course_id,
+                role=Role.STUDENT
+            )
+            self.add_single_enrollment(enrollment)
 
-        # Check that a new session was created
-        # Check that attendance records were created for
-        # every student enrolled in the class
+        session_id = self.attendance_repo.start_new_attendance_session_and_get_id(course.course_id)
 
         check_session_query = '''
         SELECT
@@ -38,6 +44,23 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
 
         self.assertEqual(returned_session.course_id, course.course_id)
         self.assertEqual(returned_session.attendance_session_id, session_id)
+
+        check_records_query = '''
+        SELECT atr.user_id, atr.attendance_session_id, atr.attendance_status
+        FROM attendance_record atr
+        WHERE atr.attendance_session_id = %s
+        '''
+
+        cursor.execute(check_session_query, params)
+        results = cursor.fetchall()
+        returned_records = [AttendanceRecord(**result) for result in results]
+
+        for record in returned_records:
+            matching_user = [user for user in users if user.user_id == record.user_id]
+            self.assertEqual(len(matching_user), 1)
+            self.assertEqual(matching_user[0].user_id, record.user_id)
+            self.assertEqual(returned_session.attendance_session_id, record.attendance_session_id)
+            self.assertEqual(record.attendance_status, AttendanceRecordStatus.NONE)
 
     def test_close_in_progress_session(self):
         # Test that a closing time was added to the data
