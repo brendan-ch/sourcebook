@@ -1,0 +1,79 @@
+{% extends 'course_layout.html' %}
+{% block header %}
+    {{ super() }}
+    <title>Attendance</title>
+
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+    <form method="post" action="{{ course.starting_url_path }}/attendance/{{ attendance_session.attendance_session_id }}/edit">
+        <main>
+            <a href="{{ course.starting_url_path }}/attendance">[Back to attendance sessions]</a>
+            <h1>{{ attendance_session.title }}</h1>
+
+            <table>
+                {% for attendance_record in attendance_records %}
+                    <tr>
+                        <td>{{ attendance_record.full_name }}</td>
+                        <td>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 0 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="0" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="0">
+                                {% endif %}
+                                None
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 1 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="1" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="1">
+                                {% endif %}
+                                Present
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 2 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="2" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="2">
+                                {% endif %}
+                                Late
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 3 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="3" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="3">
+                                {% endif %}
+                                Absent
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 4 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="4" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="4">
+                                {% endif %}
+                                Excused
+                            </label>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+            <br />
+
+            <button type="submit">[Save changes]</button>
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+        </main>
+    </form>
+{% endblock %}

@@ -10,6 +10,8 @@ from flask import Blueprint, render_template, session, abort, request, redirect,
 from custom_exceptions import AlreadyExistsException, NotFoundException, InvalidPathException
 from flask_decorators import requires_login, requires_course_enrollment, requires_course_page
 from flask_repository_getters import get_content_repository, get_attendance_repository
+from models import course
+from models.attendance_record import AttendanceRecord
 from models.course import Course
 from models.course_enrollment import Role
 from models.page import Page
@@ -221,6 +223,7 @@ def course_attendance_session_list_page(course_url: str):
     user = g.user
     course = g.course
     role = g.role
+    nav_links = g.nav_links
 
     attendance_repo = get_attendance_repository()
 
@@ -232,6 +235,94 @@ def course_attendance_session_list_page(course_url: str):
         course=course,
         user=user,
         role=role,
+        page_navigation_links=nav_links,
         active_sessions=active_sessions,
         closed_sessions=closed_sessions,
     )
+
+# TODO return a form where user can fill out optional title and options
+@course_bp.route("/<string:course_url>/attendance/new/", methods=["GET", "POST"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_session_new_session(course_url: str):
+    course = g.course
+
+    attendance_repo = get_attendance_repository()
+
+    if request.method == "GET":
+        return redirect(f"{course.starting_url_path}/attendance")
+
+    try:
+        session_id = attendance_repo.start_new_attendance_session_and_get_id(course.course_id)
+        return redirect(f"{course.starting_url_path}/attendance/{session_id}")
+    except Exception as e:
+        current_app.logger.exception(e)
+        flash("An unknown error occurred. Please try again later.")
+
+        # TODO return an actual error code
+        return redirect(f"{course.starting_url_path}/attendance")
+
+@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/", methods=["GET"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_student_list(course_url: str, attendance_session_id: int):
+    # TODO later, show a static page without editing capabilities
+    course = g.course
+    return redirect(f"{course.starting_url_path}/attendance/{attendance_session_id}/edit")
+
+@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/edit/", methods=["GET", "POST"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_student_list_edit(course_url: str, attendance_session_id: int):
+    user = g.user
+    course = g.course
+    role = g.role
+    nav_links = g.nav_links
+
+    attendance_repo = get_attendance_repository()
+    attendance_session = attendance_repo.get_attendance_session_from_id(attendance_session_id)
+    attendance_records = attendance_repo.get_student_attendance_records_with_names_from_session_id(attendance_session_id)
+
+    def render_attendance_student_list():
+        return render_template(
+            "course_attendance_students_list.html",
+            course=course,
+            user=user,
+            role=role,
+            attendance_records=attendance_records,
+            attendance_session=attendance_session,
+            page_navigation_links=nav_links,
+        )
+
+    if request.method == "GET":
+        return render_attendance_student_list()
+    elif request.method == "POST":
+        attendance_record_dictionary = dict(request.form)
+        try:
+            for key in attendance_record_dictionary:
+                # noinspection PyTypeChecker
+                constructed_attendance_record = AttendanceRecord(
+                    user_id=key,
+                    attendance_session_id=attendance_session_id,
+                    attendance_status=attendance_record_dictionary[key],
+                )
+
+                attendance_repo.update_status_by_attendance_session_and_user_id(
+                    constructed_attendance_record,
+                )
+
+            flash("Changes have been saved.")
+            return redirect(f"{course.starting_url_path}/attendance/{attendance_session_id}")
+        except ValueError as e:
+            current_app.logger.exception(e)
+            flash("Couldn't convert one of the attributes to the correct value, please try again.")
+            return render_attendance_student_list(), 400
+        except NotFoundException as e:
+            current_app.logger.exception(e)
+            flash("One or more records you submitted no longer exist. Please try again.")
+            return render_attendance_student_list(), 404
+        except Exception as e:
+            current_app.logger.exception(e)
+            flash("An unknown error occurred. Please try again later.")
+            return render_attendance_student_list(), 500
+

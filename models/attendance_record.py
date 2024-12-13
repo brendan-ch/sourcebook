@@ -7,14 +7,20 @@ class AttendanceRecordStatus(Enum):
     PRESENT = 1
     LATE = 2
     ABSENT = 3
+    EXCUSED = 4
 
-@dataclass
+@dataclass(kw_only=True)
 class AttendanceRecord:
     user_id: int
     attendance_session_id: int
     attendance_status: AttendanceRecordStatus
 
     def __post_init__(self):
-        if isinstance(self.attendance_status, int):
-            self.attendance_status = AttendanceRecordStatus(self.attendance_status)
+        if not isinstance(self.attendance_status, AttendanceRecordStatus):
+            self.attendance_status = AttendanceRecordStatus(int(self.attendance_status))
 
+        if not isinstance(self.user_id, int):
+            self.user_id = int(self.user_id)
+
+        if not isinstance(self.attendance_session_id, int):
+            self.attendance_session_id = int(self.attendance_session_id)

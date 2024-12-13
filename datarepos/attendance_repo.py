@@ -3,6 +3,7 @@ from datetime import datetime
 from custom_exceptions import NotFoundException
 from datarepos.repo import Repo
 from models.attendance_record import AttendanceRecordStatus, AttendanceRecord
+from models.attendance_record_with_name import AttendanceRecordWithName
 from models.attendance_session import AttendanceSession
 from models.course_enrollment import Role
 
@@ -157,6 +158,22 @@ class AttendanceRepo(Repo):
 
         self.execute_dml_query(update_query, params, precheck_query, precheck_params)
 
+    def get_attendance_session_from_id(self, attendance_session_id: int):
+        select_query = '''
+        SELECT ats.title, ats.opening_time, ats.closing_time, ats.attendance_session_id, ats.course_id
+        FROM attendance_session ats
+        WHERE attendance_session_id = %s;
+        '''
+        params = (attendance_session_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(select_query, params)
+        result = cursor.fetchone()
+
+        # TODO add exception handling
+
+        return AttendanceSession(**result)
+
     def get_active_attendance_sessions_from_course_id(self, course_id: int):
         select_query = '''
         SELECT ats.title, ats.opening_time, ats.closing_time, ats.attendance_session_id, ats.course_id
@@ -188,3 +205,21 @@ class AttendanceRepo(Repo):
         results = cursor.fetchall()
 
         return [AttendanceSession(**result) for result in results]
+
+    def get_student_attendance_records_with_names_from_session_id(self, attendance_session_id: int):
+        select_query = '''
+        SELECT atr.user_id, atr.attendance_session_id, atr.attendance_status, user.full_name
+        FROM attendance_record atr
+        INNER JOIN user
+            ON user.user_id = atr.user_id
+        WHERE attendance_session_id = %s
+        ORDER BY user.full_name ASC;
+        '''
+        params = (attendance_session_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(select_query, params)
+        results = cursor.fetchall()
+
+        return [AttendanceRecordWithName(**result) for result in results]
+
