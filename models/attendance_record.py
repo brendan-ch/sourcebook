@@ -8,7 +8,7 @@ class AttendanceRecordStatus(Enum):
     LATE = 2
     ABSENT = 3
 
-@dataclass
+@dataclass(kw_only=True)
 class AttendanceRecord:
     user_id: int
     attendance_session_id: int
