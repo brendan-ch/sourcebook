@@ -5,9 +5,9 @@ INSERT INTO course_term (title, position_from_top) VALUES ('Spring 2024', 2);
 INSERT INTO course_term (title, position_from_top) VALUES ('Fall 2024', 1);
 
 INSERT INTO course (title, user_friendly_class_code, starting_url_path, course_term_id)
-VALUES ('Visual Programming', 'CPSC 236', '/cpsc-236-f24', 1);
+VALUES ('Visual Programming', 'CPSC 236', '/cpsc-236-s24', 1);
 INSERT INTO course (title, user_friendly_class_code, starting_url_path, course_term_id)
-VALUES ('Database Management', 'CPSC 408', '/english/literature', 2);
+VALUES ('Database Management', 'CPSC 408', '/cpsc-408-f24', 2);
 
 -- Creates users with the password "12345"
 INSERT INTO user (full_name, email, hashed_password)
@@ -58,4 +58,13 @@ Embark on your journey into the exciting world of game development today!
 
 To edit this page or create a new one, sign in as an assistant or
 professor role. Click [New Page] on the left, or [Edit page] on the top of this page.
-', '/', 1, 1, 'Home');
+', '/', 1, NULL, 'Home');
+
+
+INSERT INTO page (page_visibility_setting, page_content, url_path_after_course_path, course_id, created_by_user_id, page_title)
+VALUES (2, '
+## Next Steps
+
+To edit this page or create a new one, sign in as an assistant or
+professor role. Click [New Page] on the left, or [Edit page] on the top of this page.
+', '/', 2, NULL, 'Home');
