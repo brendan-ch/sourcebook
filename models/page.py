@@ -41,11 +41,15 @@ class Page:
         # Perform validation beyond converting types
         # TODO check for more involved errors
 
-        if not self.url_path_after_course_path.startswith("/") \
-            or self.url_path_after_course_path.endswith("/"):
+        if (not self.url_path_after_course_path.startswith("/")
+            or self.url_path_after_course_path.endswith("/")) \
+            and len(self.url_path_after_course_path) > 1:
             raise InvalidPathException("url_path_after_course_path must start with '/' and not end with '/'")
 
-        if self.url_path_after_course_path.startswith("/attendance") \
-            or self.url_path_after_course_path.startswith("/new") \
-            or "/edit" in self.url_path_after_course_path:
+        if (self.url_path_after_course_path == "/attendance"
+            or self.url_path_after_course_path.startswith("/attendance/")) \
+            or (self.url_path_after_course_path == "/new"
+            or self.url_path_after_course_path.startswith("/new/"))  \
+            or (self.url_path_after_course_path.endswith("/edit")
+            or "/edit/" in self.url_path_after_course_path):
             raise InvalidPathException("url_path_after_course_path must not start with '/attendance' or '/new', or contain '/edit'.")
