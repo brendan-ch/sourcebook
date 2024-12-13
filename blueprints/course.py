@@ -10,6 +10,7 @@ from flask import Blueprint, render_template, session, abort, request, redirect,
 from custom_exceptions import AlreadyExistsException, NotFoundException, InvalidPathException
 from flask_decorators import requires_login, requires_course_enrollment, requires_course_page
 from flask_repository_getters import get_content_repository, get_attendance_repository
+from models import course
 from models.attendance_record import AttendanceRecord
 from models.course import Course
 from models.course_enrollment import Role
@@ -239,10 +240,36 @@ def course_attendance_session_list_page(course_url: str):
         closed_sessions=closed_sessions,
     )
 
-@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/edit", methods=["GET", "POST"])
+# TODO return a form where user can fill out optional title and options
+@course_bp.route("/<string:course_url>/attendance/new/", methods=["POST"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_session_new_session(course_url: str):
+    user = g.user
+    course = g.course
+    role = g.role
+
+    attendance_repo = get_attendance_repository()
+    try:
+        session_id = attendance_repo.start_new_attendance_session_and_get_id(course.course_id)
+        return redirect(f"{course.starting_url_path}/attendance/{session_id}")
+    except Exception as e:
+        current_app.logger.exception(e)
+        flash("An unknown error occurred. Please try again later.")
+        return redirect(f"{course.starting_url_path}/attendance")
+
+@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/", methods=["GET"])
 @requires_login(should_redirect=False)
 @requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
 def course_attendance_student_list(course_url: str, attendance_session_id: int):
+    # TODO later, show a static page without editing capabilities
+    course = g.course
+    return redirect(f"{course.starting_url_path}/attendance/{attendance_session_id}/edit")
+
+@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/edit/", methods=["GET", "POST"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_student_list_edit(course_url: str, attendance_session_id: int):
     user = g.user
     course = g.course
     role = g.role
@@ -280,7 +307,7 @@ def course_attendance_student_list(course_url: str, attendance_session_id: int):
                 )
 
             flash("Changes have been saved.")
-            return render_attendance_student_list()
+            return redirect(f"{course.starting_url_path}/attendance/{attendance_session_id}")
         except ValueError as e:
             current_app.logger.exception(e)
             flash("Couldn't convert one of the attributes to the correct value, please try again.")
