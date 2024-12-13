@@ -1,0 +1,86 @@
+{% extends 'course_layout.html' %}
+{% block header %}
+    {{ super() }}
+    <title>Attendance</title>
+
+    <script type="text/javascript">
+        function displayResult(e) {
+            e.preventDefault();
+            const form = document.getElementById("testing");
+            var data = ''
+
+            for (var i = 0; i < form.elements.length; i++) {
+                if (form.elements[i].type === 'radio' && form.elements[i].checked) {
+                    data += form.elements[i].name + ': ' + form.elements[i].value + '\n';
+                }
+            }
+
+            console.log(data)
+        }
+    </script>
+{% endblock %}
+
+{% block body %}
+    {{ super() }}
+    <form action="#" id="testing">
+        <main>
+            <h1>2024.12.13 12:13</h1>
+
+            <table>
+                <tr>
+                    <td>John Doe</td>
+                    <td>
+                        <label>
+                            <input type="radio" name="JohnDoe" value="0">
+                            None
+                        </label>
+                        <label>
+                            <input type="radio" name="JohnDoe" value="1">
+                            Present
+                        </label>
+                        <label>
+                            <input type="radio" name="JohnDoe" value="2">
+                            Late
+                        </label>
+                        <label>
+                            <input type="radio" name="JohnDoe" value="3">
+                            Absent
+                        </label>
+                        <label>
+                            <input type="radio" name="JohnDoe" value="4">
+                            Excused
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Foo</td>
+                    <td>
+                        <label>
+                            <input type="radio" name="Foo" value="0">
+                            None
+                        </label>
+                        <label>
+                            <input type="radio" name="Foo" value="1">
+                            Present
+                        </label>
+                        <label>
+                            <input type="radio" name="Foo" value="2">
+                            Late
+                        </label>
+                        <label>
+                            <input type="radio" name="Foo" value="3">
+                            Absent
+                        </label>
+                        <label>
+                            <input type="radio" name="Foo" value="4">
+                            Excused
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <button type="submit" onclick="displayResult(event)">[Save changes]</button>
+
+        </main>
+    </form>
+{% endblock %}

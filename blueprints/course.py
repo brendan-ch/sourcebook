@@ -235,3 +235,18 @@ def course_attendance_session_list_page(course_url: str):
         active_sessions=active_sessions,
         closed_sessions=closed_sessions,
     )
+
+@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/", methods=["GET"])
+@requires_login(should_redirect=False)
+@requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
+def course_attendance_session_student_list(course_url: str, attendance_session_id: int):
+    user = g.user
+    course = g.course
+    role = g.role
+
+    return render_template(
+        "course_attendance_students_list.html",
+        course=course,
+        user=user,
+        role=role,
+    )
