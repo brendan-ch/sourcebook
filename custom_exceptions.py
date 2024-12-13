@@ -9,3 +9,7 @@ class NotFoundException(Exception):
 class DependencyException(Exception):
     pass
 
+
+class InvalidPathException(Exception):
+    pass
+
