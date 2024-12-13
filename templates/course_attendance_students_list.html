@@ -9,6 +9,7 @@
     {{ super() }}
     <form method="post" action="{{ course.starting_url_path }}/attendance/{{ attendance_session.attendance_session_id }}/edit">
         <main>
+            <a href="{{ course.starting_url_path }}/attendance">[Back to attendance sessions]</a>
             <h1>{{ attendance_session.title }}</h1>
 
             <table>
