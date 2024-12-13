@@ -1,4 +1,3 @@
-import unittest
 import uuid
 from typing import Optional
 
@@ -10,7 +9,7 @@ from test.test_with_database_container import TestWithDatabaseContainer
 class TestFlaskApp(TestWithDatabaseContainer):
     def setUp(self):
         super().setUp()
-        self.app = create_app(self.database_config)
+        self.app = create_app(False, self.database_config)
         self.test_client = self.app.test_client()
         self.test_client.testing = True
 
