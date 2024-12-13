@@ -18,7 +18,7 @@
             <ul>
             {% for session in active_sessions %}
                 <li>
-                    <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}">
+                    <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}/edit">
                         {{ session.title }}
                     </a>
                 </li>
@@ -32,7 +32,7 @@
             <ul>
                 {% for session in closed_sessions %}
                     <li>
-                        <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}">
+                        <a href="{{ course.starting_url_path }}/attendance/{{ session.attendance_session_id }}/edit">
                             {{ session.title }}
                         </a>
                     </li>

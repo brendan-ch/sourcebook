@@ -10,6 +10,7 @@ from flask import Blueprint, render_template, session, abort, request, redirect,
 from custom_exceptions import AlreadyExistsException, NotFoundException, InvalidPathException
 from flask_decorators import requires_login, requires_course_enrollment, requires_course_page
 from flask_repository_getters import get_content_repository, get_attendance_repository
+from models.attendance_record import AttendanceRecord
 from models.course import Course
 from models.course_enrollment import Role
 from models.page import Page
@@ -238,10 +239,10 @@ def course_attendance_session_list_page(course_url: str):
         closed_sessions=closed_sessions,
     )
 
-@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/", methods=["GET"])
+@course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/edit", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
 @requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
-def course_attendance_session_student_list(course_url: str, attendance_session_id: int):
+def course_attendance_student_list(course_url: str, attendance_session_id: int):
     user = g.user
     course = g.course
     role = g.role
@@ -250,11 +251,46 @@ def course_attendance_session_student_list(course_url: str, attendance_session_i
     attendance_repo = get_attendance_repository()
     attendance_records = attendance_repo.get_student_attendance_records_with_names_from_session_id(attendance_session_id)
 
-    return render_template(
-        "course_attendance_students_list.html",
-        course=course,
-        user=user,
-        role=role,
-        attendance_records=attendance_records,
-        page_navigation_links=nav_links,
-    )
+    def render_attendance_student_list():
+        return render_template(
+            "course_attendance_students_list.html",
+            course=course,
+            user=user,
+            role=role,
+            attendance_records=attendance_records,
+            attendance_session_id=attendance_session_id,
+            page_navigation_links=nav_links,
+        )
+
+    if request.method == "GET":
+        return render_attendance_student_list()
+    elif request.method == "POST":
+        attendance_record_dictionary = dict(request.form)
+        try:
+            for key in attendance_record_dictionary:
+                # noinspection PyTypeChecker
+                constructed_attendance_record = AttendanceRecord(
+                    user_id=key,
+                    attendance_session_id=attendance_session_id,
+                    attendance_status=attendance_record_dictionary[key],
+                )
+
+                attendance_repo.update_status_by_attendance_session_and_user_id(
+                    constructed_attendance_record,
+                )
+
+            flash("Changes have been saved.")
+            return render_attendance_student_list()
+        except ValueError as e:
+            current_app.logger.exception(e)
+            flash("Couldn't convert one of the attributes to the correct value, please try again.")
+            return render_attendance_student_list(), 400
+        except NotFoundException as e:
+            current_app.logger.exception(e)
+            flash("One or more records you submitted no longer exist. Please try again.")
+            return render_attendance_student_list(), 404
+        except Exception as e:
+            current_app.logger.exception(e)
+            flash("An unknown error occurred. Please try again later.")
+            return render_attendance_student_list(), 500
+
