@@ -3,83 +3,67 @@
     {{ super() }}
     <title>Attendance</title>
 
-    <script type="text/javascript">
-        function displayResult(e) {
-            e.preventDefault();
-            const form = document.getElementById("testing");
-            var data = ''
-
-            for (var i = 0; i < form.elements.length; i++) {
-                if (form.elements[i].type === 'radio' && form.elements[i].checked) {
-                    data += form.elements[i].name + ': ' + form.elements[i].value + '\n';
-                }
-            }
-
-            console.log(data)
-        }
-    </script>
 {% endblock %}
 
 {% block body %}
     {{ super() }}
-    <form action="#" id="testing">
+    <form action="#">
         <main>
             <h1>2024.12.13 12:13</h1>
 
             <table>
-                <tr>
-                    <td>John Doe</td>
-                    <td>
-                        <label>
-                            <input type="radio" name="JohnDoe" value="0">
-                            None
-                        </label>
-                        <label>
-                            <input type="radio" name="JohnDoe" value="1">
-                            Present
-                        </label>
-                        <label>
-                            <input type="radio" name="JohnDoe" value="2">
-                            Late
-                        </label>
-                        <label>
-                            <input type="radio" name="JohnDoe" value="3">
-                            Absent
-                        </label>
-                        <label>
-                            <input type="radio" name="JohnDoe" value="4">
-                            Excused
-                        </label>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Foo</td>
-                    <td>
-                        <label>
-                            <input type="radio" name="Foo" value="0">
-                            None
-                        </label>
-                        <label>
-                            <input type="radio" name="Foo" value="1">
-                            Present
-                        </label>
-                        <label>
-                            <input type="radio" name="Foo" value="2">
-                            Late
-                        </label>
-                        <label>
-                            <input type="radio" name="Foo" value="3">
-                            Absent
-                        </label>
-                        <label>
-                            <input type="radio" name="Foo" value="4">
-                            Excused
-                        </label>
-                    </td>
-                </tr>
+                {% for attendance_record in attendance_records %}
+                    <tr>
+                        <td>{{ attendance_record.full_name }}</td>
+                        <td>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 0 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="0" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="0">
+                                {% endif %}
+                                None
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 1 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="1" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="1">
+                                {% endif %}
+                                Present
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 2 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="2" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="2">
+                                {% endif %}
+                                Late
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 3 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="3" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="3">
+                                {% endif %}
+                                Absent
+                            </label>
+                            <label>
+                                {% if attendance_record.attendance_status.value == 4 %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="4" checked>
+                                {% else %}
+                                    <input type="radio" name="{{ attendance_record.user_id }}" value="4">
+                                {% endif %}
+                                Excused
+                            </label>
+                        </td>
+                    </tr>
+                {% endfor %}
             </table>
 
-            <button type="submit" onclick="displayResult(event)">[Save changes]</button>
+            <br />
+
+            <button type="submit">[Save changes]</button>
 
         </main>
     </form>
