@@ -7,7 +7,7 @@ import markdown2
 from bs4 import BeautifulSoup
 from flask import Blueprint, render_template, session, abort, request, redirect, current_app, flash, g
 
-from custom_exceptions import AlreadyExistsException, NotFoundException
+from custom_exceptions import AlreadyExistsException, NotFoundException, InvalidPathException
 from flask_decorators import requires_login, requires_course_enrollment, requires_course_page
 from flask_repository_getters import get_content_repository, get_attendance_repository
 from models.course import Course
@@ -58,6 +58,15 @@ def course_create_new_page(course_url: str):
 
         # TODO create test cases for each error type
         # TODO PLEASE give better error messages, these are super vague right now
+        except InvalidPathException as e:
+            current_app.logger.exception(e)
+            return render_template(
+                "course_edit_page.html",
+                user=user,
+                role=role,
+                course=course,
+                error="Not a valid path, please try again."
+            )
         except ValueError as e:
             current_app.logger.exception(e)
             return render_template(
@@ -74,7 +83,7 @@ def course_create_new_page(course_url: str):
                 user=user,
                 role=role,
                 course=course,
-                error="There is already a page with that URL in this course. Please try again with a different URL."
+                error="There is already a page with that path in this course. Please try again with a different path."
             ), 400
         except TypeError as e:
             # Something happened when constructing the Page object
