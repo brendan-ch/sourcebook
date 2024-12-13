@@ -172,7 +172,14 @@ class CourseRepo(Repo):
             course.course_id
         )
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM course
+        WHERE course.course_id = %s;
+        '''
+        precheck_params = (course.course_id,)
+
+        self.execute_dml_query(update_query, params, precheck_query, precheck_params)
 
     def delete_course_by_id(self, course_id: int):
         delete_course_query = '''
@@ -181,7 +188,13 @@ class CourseRepo(Repo):
         '''
         params = (course_id,)
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(delete_course_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM course
+        WHERE course.course_id = %s;
+        '''
+
+        self.execute_dml_query(delete_course_query, params, precheck_query, params)
 
     def get_user_role_in_class_if_exists(self, user_id: str, course_id: str) -> Optional[Role]:
         get_enrollment_query = '''

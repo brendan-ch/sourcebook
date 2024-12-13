@@ -59,7 +59,14 @@ class ContentRepo(Repo):
             page.page_id,
         )
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM page
+        WHERE page.page_id = %s;
+        '''
+        precheck_params = (page.page_id,)
+
+        self.execute_dml_query(update_query, params, precheck_query, precheck_params)
 
     def delete_page_by_id(self, page_id: int):
         delete_query = '''
@@ -68,7 +75,13 @@ class ContentRepo(Repo):
         '''
         params = (page_id,)
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(delete_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM page
+        WHERE page.page_id = %s;
+        '''
+
+        self.execute_dml_query(delete_query, params, precheck_query, params)
 
     def delete_pages_with_course_id(self, course_id: int):
         delete_from_course_query = '''

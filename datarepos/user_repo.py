@@ -93,4 +93,10 @@ class UserRepo(Repo):
         '''
         params = (user_id,)
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(delete_user_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM user
+        WHERE user.user_id = %s;
+        '''
+
+        self.execute_dml_query(delete_user_query, params, precheck_query, params)

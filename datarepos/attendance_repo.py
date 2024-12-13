@@ -77,7 +77,15 @@ class AttendanceRepo(Repo):
             attendance_session_id,
         )
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM attendance_session ats
+        WHERE ats.attendance_session_id = %s
+            AND ats.closing_time IS NULL
+        '''
+        precheck_params = (attendance_session_id,)
+
+        self.execute_dml_query(update_query, params, precheck_query, precheck_params)
 
     def delete_attendance_session_and_records(self, attendance_session_id: int):
         delete_session_query = '''
@@ -113,7 +121,15 @@ class AttendanceRepo(Repo):
             attendance_session_id,
         )
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM attendance_session ats
+        WHERE ats.attendance_session_id = %s
+            AND ats.closing_time IS NULL
+        '''
+        precheck_params = (attendance_session_id,)
+
+        self.execute_dml_query(update_query, params, precheck_query, precheck_params)
 
     def update_status_by_attendance_session_and_user_id(self, attendance_record: AttendanceRecord):
         update_query = '''
@@ -128,7 +144,18 @@ class AttendanceRepo(Repo):
             attendance_record.user_id,
         )
 
-        self.execute_dml_query_and_check_rowcount_greater_than_0(update_query, params)
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM attendance_record atr
+        WHERE atr.attendance_session_id = %s
+            AND atr.user_id = %s
+        '''
+        precheck_params = (
+            attendance_record.attendance_session_id,
+            attendance_record.user_id
+        )
+
+        self.execute_dml_query(update_query, params, precheck_query, precheck_params)
 
     def get_active_attendance_sessions_from_course_id(self, course_id: int):
         select_query = '''
