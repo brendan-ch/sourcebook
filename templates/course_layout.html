@@ -143,14 +143,10 @@
 {% endblock %}
 
 {% block body %}
-{#    TODO render from database #}
     <nav class="landscape-nav">
         <ul>
             <li>
-                <a>Attendance</a>
-            </li>
-            <li>
-                <a>Grades</a>
+                <a href="{{ course.starting_url_path }}/attendance">Attendance</a>
             </li>
         </ul>
 
@@ -202,10 +198,7 @@
         <div class="portrait-nav-content">
             <ul>
                 <li>
-                    <a>Attendance</a>
-                </li>
-                <li>
-                    <a>Grades</a>
+                    <a href="{{ course.starting_url_path }}/attendance">Attendance</a>
                 </li>
             </ul>
 
