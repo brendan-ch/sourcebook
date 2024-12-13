@@ -17,6 +17,16 @@ class TestPage(unittest.TestCase):
             course_id=1
         )
 
+    def test_single_character_path(self):
+        with self.assertRaises(InvalidPathException):
+            Page(
+                page_title="Test Title",
+                page_content="Test Content",
+                page_visibility_setting=VisibilitySetting.LISTED,
+                url_path_after_course_path="H",
+                course_id=1
+            )
+
     def test_url_path_ends_with_slash(self):
         with self.assertRaises(InvalidPathException):
             Page(
