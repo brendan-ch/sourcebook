@@ -92,14 +92,7 @@ def export_all_attendance_records_and_students():
     attendance_repo = get_attendance_repository()
 
     query = '''
-    SELECT user.full_name, user.email, user.user_id, atr.attendance_session_id, atr.attendance_status, course.title, course.user_friendly_class_code
-    FROM attendance_record atr
-    INNER JOIN user
-        ON user.user_id = atr.user_id
-    INNER JOIN attendance_session ats
-        ON ats.attendance_session_id = atr.attendance_session_id
-    INNER JOIN course
-        ON course.course_id = ats.course_id
+    SELECT * FROM attendance_records_students_classes;
     '''
 
     cursor = attendance_repo.connection.cursor()
