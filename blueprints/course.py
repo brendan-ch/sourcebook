@@ -38,6 +38,7 @@ def course_create_new_page(course_url: str):
     user = g.user
     course = g.course
     role = g.role
+    nav_links = g.nav_links
 
     def render_new_page_template_with_optional_error(error: Optional[str] = None):
         return render_template(
@@ -46,6 +47,7 @@ def course_create_new_page(course_url: str):
             role=role,
             course=course,
             discard_navigates_to=f"{course.starting_url_path}",
+            page_navigation_links=nav_links,
             error=error
         )
 
