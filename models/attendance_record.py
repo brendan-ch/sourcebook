@@ -7,6 +7,7 @@ class AttendanceRecordStatus(Enum):
     PRESENT = 1
     LATE = 2
     ABSENT = 3
+    EXCUSED = 4
 
 @dataclass(kw_only=True)
 class AttendanceRecord:
