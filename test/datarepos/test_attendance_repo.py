@@ -285,3 +285,28 @@ class TestAttendanceRepo(TestWithDatabaseContainer):
         returned_sessions = self.attendance_repo.get_closed_attendance_sessions_from_course_id(course.course_id)
         self.assertEqual(len(returned_sessions), 1)
         self.assertEqual(attendance_session, returned_sessions[0])
+
+    def test_get_student_attendance_records_with_names_from_session_id(self):
+        course, users = self.add_course_and_users_for_attendance_test()
+
+        attendance_session = AttendanceSession(
+            course_id=course.course_id,
+            opening_time=datetime.now(),
+            closing_time=datetime.now() + timedelta(hours=2),
+            title="Attendance Session",
+        )
+        attendance_session.attendance_session_id = self.add_single_attendance_session_and_get_id(attendance_session)
+
+        records = self.add_student_attendance_records_for_users(attendance_session.attendance_session_id, users)
+
+        returned_records = self.attendance_repo.get_student_attendance_records_with_names_from_session_id(
+            attendance_session.attendance_session_id,
+        )
+
+        for returned_record in returned_records:
+            matching_record = [record for record in records
+                               if record.user_id == returned_record.user_id
+                               and record.attendance_session_id == returned_record.attendance_session_id][0]
+
+            self.assertEqual(matching_record.attendance_status, returned_record.attendance_status)
+

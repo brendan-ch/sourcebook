@@ -188,3 +188,6 @@ class AttendanceRepo(Repo):
         results = cursor.fetchall()
 
         return [AttendanceSession(**result) for result in results]
+
+    def get_student_attendance_records_with_names_from_session_id(self, attendance_session_id: int):
+        pass
