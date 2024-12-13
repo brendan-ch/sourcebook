@@ -280,6 +280,7 @@ def course_attendance_student_list_edit(course_url: str, attendance_session_id: 
     nav_links = g.nav_links
 
     attendance_repo = get_attendance_repository()
+    attendance_session = attendance_repo.get_attendance_session_from_id(attendance_session_id)
     attendance_records = attendance_repo.get_student_attendance_records_with_names_from_session_id(attendance_session_id)
 
     def render_attendance_student_list():
@@ -289,7 +290,7 @@ def course_attendance_student_list_edit(course_url: str, attendance_session_id: 
             user=user,
             role=role,
             attendance_records=attendance_records,
-            attendance_session_id=attendance_session_id,
+            attendance_session=attendance_session,
             page_navigation_links=nav_links,
         )
 

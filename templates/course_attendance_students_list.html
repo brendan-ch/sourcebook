@@ -7,9 +7,9 @@
 
 {% block body %}
     {{ super() }}
-    <form method="post" action="{{ course.starting_url_path }}/attendance/{{ attendance_session_id }}/edit">
+    <form method="post" action="{{ course.starting_url_path }}/attendance/{{ attendance_session.attendance_session_id }}/edit">
         <main>
-            <h1>2024.12.13 12:13</h1>
+            <h1>{{ attendance_session.title }}</h1>
 
             <table>
                 {% for attendance_record in attendance_records %}
