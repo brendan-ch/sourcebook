@@ -25,6 +25,11 @@ VALUES ('Eva Davis', 'eva.davis@example.com', 'scrypt:32768:8:1$s9yZxVAUhmWEfmb6
 INSERT INTO user (full_name, email, hashed_password)
 VALUES ('Frank Miller', 'frank.miller@example.com', 'scrypt:32768:8:1$s9yZxVAUhmWEfmb6$c2738833e6e12be7bb4b536b59957d6f880becdf3235ee21777de77bc3535e82de1336e20064b782fa2b1b65c106eaef5c7328f140ef3dd210ac6224c941c564');
 
+-- Roles
+-- 1: student
+-- 2: assistant
+-- 3: professor
+-- Roles 2 and 3 have the ability to edit content
 INSERT INTO enrollment (course_id, user_id, role) VALUES (1, 1, 3);
 INSERT INTO enrollment (course_id, user_id, role) VALUES (1, 2, 2);
 INSERT INTO enrollment (course_id, user_id, role) VALUES (1, 3, 1);
@@ -33,7 +38,7 @@ INSERT INTO enrollment (course_id, user_id, role) VALUES (2, 5, 3);
 INSERT INTO enrollment (course_id, user_id, role) VALUES (2, 6, 1);
 INSERT INTO enrollment (course_id, user_id, role) VALUES (2, 7, 1);
 
-INSERT INTO page (page_visibility_setting, page_content, url_path_after_course_path, course_id, created_by_user_id)
+INSERT INTO page (page_visibility_setting, page_content, url_path_after_course_path, course_id, created_by_user_id, page_title)
 VALUES (2, '# Home
 
 Discover the art and science of creating immersive games! This course
@@ -49,10 +54,8 @@ creativity with technical skills.
 
 Embark on your journey into the exciting world of game development today!
 
-## Helpful Links
+## Next Steps
 
-- [Office Hours](/office-hours)
-- [Lecture Notes](/lecture-notes)
-- [Assignments](/assignments)
-- [Contact Me](/contact-me)
-', '/', 1, 1);
+To edit this page or create a new one, sign in as an assistant or
+professor role. Click [New Page] on the left, or [Edit page] on the top of this page.
+', '/', 1, 1, 'Home');
