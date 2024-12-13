@@ -38,14 +38,21 @@ def course_create_new_page(course_url: str):
     user = g.user
     course = g.course
     role = g.role
+    nav_links = g.nav_links
 
-    if request.method == "GET":
+    def render_new_page_template_with_optional_error(error: Optional[str] = None):
         return render_template(
             "course_edit_page.html",
             user=user,
             role=role,
             course=course,
+            discard_navigates_to=f"{course.starting_url_path}",
+            page_navigation_links=nav_links,
+            error=error
         )
+
+    if request.method == "GET":
+        return render_new_page_template_with_optional_error()
     else:
         page_dictionary = dict(request.form)
 
@@ -60,40 +67,23 @@ def course_create_new_page(course_url: str):
         # TODO PLEASE give better error messages, these are super vague right now
         except InvalidPathException as e:
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                user=user,
-                role=role,
-                course=course,
+            return render_new_page_template_with_optional_error(
                 error="Not a valid path, please try again."
-            )
+            ), 400
         except ValueError as e:
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                user=user,
-                role=role,
-                course=course,
-                error="Couldn't convert one of the attributes into the correct type."
+            return render_new_page_template_with_optional_error(
+                error="Couldn't convert one of the attributes into the correct type, please try again."
             ), 400
         except AlreadyExistsException as e:
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                user=user,
-                role=role,
-                course=course,
+            return render_new_page_template_with_optional_error(
                 error="There is already a page with that path in this course. Please try again with a different path."
             ), 400
+
         except TypeError as e:
-            # Something happened when constructing the Page object
             current_app.logger.exception(e)
-            return render_template(
-                "course_edit_page.html",
-                submit_path="/new",
-                user=user,
-                role=role,
-                course=course,
+            return render_new_page_template_with_optional_error(
                 error="There was an issue parsing your response. Please try again later."
             ), 400
 
@@ -174,6 +164,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
             role=role,
             course=course,
             error=error,
+            discard_navigates_to=f"{course.starting_url_path}{page.url_path_after_course_path}",
             page_navigation_links=nav_links,
             **asdict(page)
         )
@@ -197,6 +188,11 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
 
         # TODO create test cases for each error type
         # TODO PLEASE give better error messages, these are super vague right now
+        except InvalidPathException as e:
+            current_app.logger.exception(e)
+            return render_edit_template_with_optional_error(
+                error="Not a valid path, please try again"
+            ), 400
         except NotFoundException as e:
             current_app.logger.exception(e)
             return render_edit_template_with_optional_error(
