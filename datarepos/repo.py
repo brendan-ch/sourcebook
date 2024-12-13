@@ -1,3 +1,5 @@
+from typing import Optional
+
 import mysql.connector
 from mysql.connector import IntegrityError
 
@@ -40,7 +42,35 @@ class Repo:
         id = cursor.lastrowid
         return id
 
-    def execute_dml_query_and_check_rowcount_greater_than_0(self, update_query, params):
+    def execute_dml_query(
+        self,
+        update_query,
+        params,
+        not_found_precheck_query: Optional[str] = None,
+        not_found_precheck_params: Optional[tuple] = None
+    ):
+        """
+        Execute a DML query with commit/rollback.
+
+        :param update_query: DML query to be executed.
+        :param params: Params to pass into the DML query.
+        :param not_found_precheck_query: Optional `SELECT COUNT(*) FROM table_name`
+        query run before the update query, raising a NotFoundException if
+        count < 1.
+        :param not_found_precheck_params: Params to pass into `not_found_precheck_query`.
+        :raises DependencyException if foreign key constraint violated
+        :raises AlreadyExistsException if primary key or unique constraint violated
+        """
+        # If provided, this query checks whether the value exists
+        # by checking the row count
+        if not_found_precheck_query:
+            cursor = self.connection.cursor()
+            cursor.execute(not_found_precheck_query, not_found_precheck_params)
+            count, = cursor.fetchone()
+
+            if count < 1:
+                raise NotFoundException
+
         cursor = self.connection.cursor()
         try:
             cursor.execute(update_query, params)
@@ -51,8 +81,5 @@ class Repo:
                 raise DependencyException
             else:
                 raise e
-        row_count = cursor.rowcount
-        if row_count < 1:
-            raise NotFoundException
 
         self.connection.commit()

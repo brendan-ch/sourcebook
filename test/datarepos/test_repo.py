@@ -1,3 +1,4 @@
+from custom_exceptions import NotFoundException
 from datarepos.repo import Repo
 from test.test_with_database_container import TestWithDatabaseContainer
 
@@ -28,4 +29,20 @@ class TestRepo(TestWithDatabaseContainer):
         '''
         params = (row_id,)
 
-        self.repo.execute_dml_query_and_check_rowcount_greater_than_0(test_update_query, params)
+        self.repo.execute_dml_query(test_update_query, params)
+
+    def test_execute_dml_query_with_not_found_precheck(self):
+        precheck_query = '''
+        SELECT COUNT(*)
+        FROM course_term
+        WHERE course_term_id = 1
+        '''
+
+        test_update_query = '''
+        UPDATE course_term
+        SET title = 'Fall 2024', position_from_top = 1
+        WHERE course_term_id = 1
+        '''
+
+        with self.assertRaises(NotFoundException):
+            self.repo.execute_dml_query(test_update_query, (), precheck_query)
