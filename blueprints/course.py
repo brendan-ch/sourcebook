@@ -221,6 +221,7 @@ def course_attendance_session_list_page(course_url: str):
     user = g.user
     course = g.course
     role = g.role
+    nav_links = g.nav_links
 
     attendance_repo = get_attendance_repository()
 
@@ -232,6 +233,7 @@ def course_attendance_session_list_page(course_url: str):
         course=course,
         user=user,
         role=role,
+        page_navigation_links=nav_links,
         active_sessions=active_sessions,
         closed_sessions=closed_sessions,
     )
@@ -243,10 +245,12 @@ def course_attendance_session_student_list(course_url: str, attendance_session_i
     user = g.user
     course = g.course
     role = g.role
+    nav_links = g.nav_links
 
     return render_template(
         "course_attendance_students_list.html",
         course=course,
         user=user,
         role=role,
+        page_navigation_links=nav_links,
     )
