@@ -7,7 +7,7 @@
 {% block body %}
     {{ super() }}
     <main>
-        <form method="post">
+        <form method="post" action="{{ course.starting_url_path }}/attendance/new/">
             <button>[Create new session]</button>
         </form>
 

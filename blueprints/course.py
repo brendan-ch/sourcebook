@@ -241,21 +241,25 @@ def course_attendance_session_list_page(course_url: str):
     )
 
 # TODO return a form where user can fill out optional title and options
-@course_bp.route("/<string:course_url>/attendance/new/", methods=["POST"])
+@course_bp.route("/<string:course_url>/attendance/new/", methods=["GET", "POST"])
 @requires_login(should_redirect=False)
 @requires_course_enrollment(course_url_routing_arg_key="course_url", required_role=Role.ASSISTANT)
 def course_attendance_session_new_session(course_url: str):
-    user = g.user
     course = g.course
-    role = g.role
 
     attendance_repo = get_attendance_repository()
+
+    if request.method == "GET":
+        return redirect(f"{course.starting_url_path}/attendance")
+
     try:
         session_id = attendance_repo.start_new_attendance_session_and_get_id(course.course_id)
         return redirect(f"{course.starting_url_path}/attendance/{session_id}")
     except Exception as e:
         current_app.logger.exception(e)
         flash("An unknown error occurred. Please try again later.")
+
+        # TODO return an actual error code
         return redirect(f"{course.starting_url_path}/attendance")
 
 @course_bp.route("/<string:course_url>/attendance/<int:attendance_session_id>/", methods=["GET"])
