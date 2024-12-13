@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS course (
     FOREIGN KEY (course_term_id) REFERENCES course_term(course_term_id)
 );
 
+CREATE INDEX index_course_id ON course(course_id);
+
 CREATE TABLE IF NOT EXISTS user (
     -- for internal backend code
     user_id INT PRIMARY KEY AUTO_INCREMENT,

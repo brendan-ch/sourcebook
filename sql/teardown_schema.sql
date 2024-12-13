@@ -1,3 +1,4 @@
+DROP INDEX index_course_id ON course;
 DROP VIEW attendance_records_students_classes;
 
 DROP TABLE attendance_record;
