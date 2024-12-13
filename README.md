@@ -33,6 +33,13 @@ Then, exit the MySQL shell with Ctrl+D and load the schema definition:
 $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_schema.sql
 ```
 
+At this stage, you can also load the database with some sample data
+located under `sql/setup_playground_data.sql`.
+
+```bash
+$ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_playground_data.sql
+```
+
 ### Environment variables
 
 Duplicate the `.env.example` file, name it `.env`, and set the variables.
