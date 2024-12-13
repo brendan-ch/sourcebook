@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
-from urllib.parse import urlparse
+
+from custom_exceptions import InvalidPathException
 
 
 class VisibilitySetting(Enum):
@@ -42,9 +43,9 @@ class Page:
 
         if not self.url_path_after_course_path.startswith("/") \
             or self.url_path_after_course_path.endswith("/"):
-            raise ValueError("url_path_after_course_path must start with '/' and not end with '/'")
+            raise InvalidPathException("url_path_after_course_path must start with '/' and not end with '/'")
 
         if self.url_path_after_course_path.startswith("/attendance") \
             or self.url_path_after_course_path.startswith("/new") \
             or "/edit" in self.url_path_after_course_path:
-            raise ValueError("url_path_after_course_path must not start with '/attendance' or '/new', or contain '/edit'.")
+            raise InvalidPathException("url_path_after_course_path must not start with '/attendance' or '/new', or contain '/edit'.")

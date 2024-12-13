@@ -1,5 +1,6 @@
 import unittest
 
+from custom_exceptions import InvalidPathException
 from models.page import Page, VisibilitySetting
 
 
@@ -17,7 +18,7 @@ class TestPage(unittest.TestCase):
         )
 
     def test_url_path_ends_with_slash(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidPathException):
             Page(
                 page_title="Test Title",
                 page_content="Test Content",
@@ -30,7 +31,7 @@ class TestPage(unittest.TestCase):
         words_to_check = ["/attendance", "/new", "/foo/edit/bar"]
         for word in words_to_check:
             with self.subTest(word=word):
-                with self.assertRaises(ValueError):
+                with self.assertRaises(InvalidPathException):
                     Page(
                         page_title="Test Title",
                         page_content="Test Content",
