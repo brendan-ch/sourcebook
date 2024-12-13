@@ -90,9 +90,9 @@
                 {# If the user is on an edit page, then return to original page #}
                 {# If user is on create new page, then go to the home page #}
                 {% if discard_navigates_to %}
-                    <a href="{{ discard_navigates_to }}">Discard</a>
+                    <a href="{{ discard_navigates_to }}">Discard changes</a>
                 {% else %}
-                    <a href="{{ course.starting_url_path }}">Discard</a>
+                    <a href="{{ course.starting_url_path }}">Discard changes</a>
                 {% endif %}
                 <button type="submit">Save</button>
             </div>
