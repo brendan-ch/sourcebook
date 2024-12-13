@@ -46,6 +46,10 @@ class Page:
             and len(self.url_path_after_course_path) > 1:
             raise InvalidPathException("url_path_after_course_path must start with '/' and not end with '/'")
 
+        if len(self.url_path_after_course_path) == 1 \
+            and self.url_path_after_course_path != "/":
+            raise InvalidPathException("url_path_after_course_path must start with '/' and not end with '/'")
+
         if (self.url_path_after_course_path == "/attendance"
             or self.url_path_after_course_path.startswith("/attendance/")) \
             or (self.url_path_after_course_path == "/new"
