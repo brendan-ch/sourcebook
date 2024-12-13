@@ -103,6 +103,7 @@ This is the home page.
             self.assertIsNone(new_page_button)
 
         if course_pages:
+            # TODO complete this check when implementing nested pages
             # For each course page, check if it's listed/unlisted/hidden
 
             # If listed and URL is nested under listed page,
@@ -149,6 +150,9 @@ This is the home page.
 
         submit_button = soup.find("button", type="submit")
         self.assertIsNotNone(submit_button)
+
+        discard_button = soup.find("a", string=re.compile("discard", re.IGNORECASE))
+        self.assertIsNotNone(discard_button)
 
     def assert_static_page_main_content(self, response):
         soup = BeautifulSoup(response.data, "html.parser")
