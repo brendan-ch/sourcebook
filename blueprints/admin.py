@@ -3,7 +3,8 @@ import os
 
 from flask import Blueprint, render_template, redirect, flash
 
-from flask_repository_getters import get_content_repository, get_user_repository, get_course_repository
+from flask_repository_getters import get_content_repository, get_user_repository, get_course_repository, \
+    get_attendance_repository
 
 admin_bp = Blueprint('admin', __name__, url_prefix='')
 
@@ -80,6 +81,33 @@ def export_student_count_per_class():
 
     writer = csv.writer(open(f'exports/student_count_per_class.csv', 'w'))
     writer.writerow(['course_id', 'title', 'user_friendly_class_code', 'student_count'])
+    for line in result:
+        writer.writerow(line)
+
+    flash('Export generated under exports directory in project root.')
+    return redirect('/')
+
+@admin_bp.route('/export-attendance-records-and-students', methods=['POST'])
+def export_all_attendance_records_and_students():
+    attendance_repo = get_attendance_repository()
+
+    query = '''
+    SELECT user.full_name, user.email, user.user_id, atr.attendance_session_id, atr.attendance_status, course.title, course.user_friendly_class_code
+    FROM attendance_record atr
+    INNER JOIN user
+        ON user.user_id = atr.user_id
+    INNER JOIN attendance_session ats
+        ON ats.attendance_session_id = atr.attendance_session_id
+    INNER JOIN course
+        ON course.course_id = ats.course_id
+    '''
+
+    cursor = attendance_repo.connection.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+
+    writer = csv.writer(open(f'exports/attendance_records_and_students.csv', 'w'))
+    writer.writerow(['full_name', 'email', 'user_id', 'attendance_session_id', 'attendance_status', 'title', 'user_friendly_class_code'])
     for line in result:
         writer.writerow(line)
 
