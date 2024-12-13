@@ -247,10 +247,14 @@ def course_attendance_session_student_list(course_url: str, attendance_session_i
     role = g.role
     nav_links = g.nav_links
 
+    attendance_repo = get_attendance_repository()
+    attendance_records = attendance_repo.get_student_attendance_records_with_names_from_session_id(attendance_session_id)
+
     return render_template(
         "course_attendance_students_list.html",
         course=course,
         user=user,
         role=role,
+        attendance_records=attendance_records,
         page_navigation_links=nav_links,
     )
