@@ -158,6 +158,22 @@ class AttendanceRepo(Repo):
 
         self.execute_dml_query(update_query, params, precheck_query, precheck_params)
 
+    def get_attendance_session_from_id(self, attendance_session_id: int):
+        select_query = '''
+        SELECT ats.title, ats.opening_time, ats.closing_time, ats.attendance_session_id, ats.course_id
+        FROM attendance_session ats
+        WHERE attendance_session_id = %s;
+        '''
+        params = (attendance_session_id,)
+
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(select_query, params)
+        result = cursor.fetchone()
+
+        # TODO add exception handling
+
+        return AttendanceSession(**result)
+
     def get_active_attendance_sessions_from_course_id(self, course_id: int):
         select_query = '''
         SELECT ats.title, ats.opening_time, ats.closing_time, ats.attendance_session_id, ats.course_id
