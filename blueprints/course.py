@@ -69,17 +69,17 @@ def course_create_new_page(course_url: str):
             current_app.logger.exception(e)
             return render_new_page_template_with_optional_error(
                 error="Not a valid path, please try again."
-            )
+            ), 400
         except ValueError as e:
             current_app.logger.exception(e)
             return render_new_page_template_with_optional_error(
                 error="Couldn't convert one of the attributes into the correct type, please try again."
-            )
+            ), 400
         except AlreadyExistsException as e:
             current_app.logger.exception(e)
             return render_new_page_template_with_optional_error(
                 error="There is already a page with that path in this course. Please try again with a different path."
-            )
+            ), 400
 
         except TypeError as e:
             current_app.logger.exception(e)
@@ -192,7 +192,7 @@ def course_custom_static_url_edit_page(course_url: str, custom_static_path: Opti
             current_app.logger.exception(e)
             return render_edit_template_with_optional_error(
                 error="Not a valid path, please try again"
-            )
+            ), 400
         except NotFoundException as e:
             current_app.logger.exception(e)
             return render_edit_template_with_optional_error(
