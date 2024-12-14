@@ -42,7 +42,8 @@ $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_
 
 ### Environment variables
 
-Duplicate the `.env.example` file, name it `.env`, and set the variables.
+Duplicate the `.env.example` file, name it `.env`, and set the variables
+to point to your MySQL database instance.
 
 See [the Flask documentation](https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY)
 for how to quickly generate the `FLASK_APP_SECRET_KEY` value.
