@@ -4,7 +4,7 @@ A lightweight, self-contained CMS for class websites.
 
 ## Demo Video
 
-Demo video is located at `/docs/demo.mp4`.
+Demo video is located at `docs/demo.mp4`.
 
 ## Developer Setup
 
