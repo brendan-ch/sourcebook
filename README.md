@@ -9,7 +9,7 @@ Prerequisites:
 - Python 3.12
 - MySQL 9.0.1
 - MySQL shell
-- Docker (for tests)
+- Docker (for tests only, not required otherwise)
 
 ### MySQL
 
