@@ -33,10 +33,10 @@ Then, exit the MySQL shell with Ctrl+D and load the schema definition:
 $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_schema.sql
 ```
 
-At this stage, you can also load the database with some sample data
+I also recommend loading the sample data
 located under `sql/setup_playground_data.sql`.
 
-```bash
+```shell
 $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_playground_data.sql
 ```
 
@@ -47,7 +47,7 @@ Duplicate the `.env.example` file, name it `.env`, and set the variables.
 See [the Flask documentation](https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY)
 for how to quickly generate the `FLASK_APP_SECRET_KEY` value.
 
-### Python
+### Main app
 
 Set up your Python virtual environment:
 
@@ -65,3 +65,17 @@ You're now ready to start the application.
 ```shell
 $ python app.py
 ```
+
+The application will run at http://localhost:5000 by default.
+
+### Admin app
+
+Some functionality (e.g. exports) is located in a separate interface which is
+started separately from the main app. To start this app, run `app.py`
+with the `--admin` flag:
+
+```shell
+$ python app.py --admin
+```
+
+Go to http://localhost:5000 to access the interface.
