@@ -2,6 +2,10 @@
 
 A lightweight, self-contained CMS for class websites.
 
+## Demo Video
+
+![demo.mp4](./docs/demo.mp4)
+
 ## Developer Setup
 
 Prerequisites:
@@ -9,7 +13,7 @@ Prerequisites:
 - Python 3.12
 - MySQL 9.0.1
 - MySQL shell
-- Docker (for tests only, not required otherwise)
+- Docker (not required unless you want to run the tests)
 
 ### MySQL
 
