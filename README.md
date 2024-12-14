@@ -37,8 +37,10 @@ Then, exit the MySQL shell with Ctrl+D and load the schema definition:
 $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_schema.sql
 ```
 
-I also recommend loading the sample data
-located in `sql/setup_playground_data.sql`.
+I also recommend loading the sample data located in 
+`sql/setup_playground_data.sql`. This file inserts usernames
+and passwords for accessing the app, without having to create them separately.
+See the comments in the file for the login info.
 
 ```shell
 $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_playground_data.sql
@@ -65,7 +67,7 @@ $ source .venv/bin/activate
 $ pip install -r requirements.txt
 ```
 
-You're now ready to start the application.
+You're now ready to start the application!
 
 ```shell
 $ python app.py
