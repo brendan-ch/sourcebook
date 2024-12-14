@@ -64,7 +64,7 @@ def export_student_count_per_class():
     course_repo = get_course_repository()
 
     query = '''
-    SELECT course.course_id, course.title, course.user_friendly_class_code, COUNT(enrollment.user_id)
+    SELECT course.course_id, course.title, course.user_friendly_class_code, COUNT(filtered_enrollments.user_id)
     FROM course
     INNER JOIN (
         SELECT enrollment.course_id, enrollment.user_id
@@ -98,6 +98,8 @@ def export_all_attendance_records_and_students():
     cursor = attendance_repo.connection.cursor()
     cursor.execute(query)
     result = cursor.fetchall()
+
+    os.makedirs('exports', exist_ok=True)
 
     writer = csv.writer(open(f'exports/attendance_records_and_students.csv', 'w'))
     writer.writerow(['full_name', 'email', 'user_id', 'attendance_session_id', 'attendance_status', 'title', 'user_friendly_class_code'])
