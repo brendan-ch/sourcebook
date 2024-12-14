@@ -4,7 +4,7 @@ A lightweight, self-contained CMS for class websites.
 
 ## Demo Video
 
-![demo.mp4](./docs/demo.mp4)
+Demo video is located at `/docs/demo.mp4`.
 
 ## Developer Setup
 
@@ -17,7 +17,7 @@ Prerequisites:
 
 ### MySQL
 
-Database schema definitions are located under
+Database schema definitions are located in
 `sql/setup_schema.sql`. With the MySQL shell installed, you can run
 something like this to create your schema:
 
@@ -38,7 +38,7 @@ $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_
 ```
 
 I also recommend loading the sample data
-located under `sql/setup_playground_data.sql`.
+located in `sql/setup_playground_data.sql`.
 
 ```shell
 $ mysql -u <username> -p --host=<hostname> --port=<port> sourcebook < sql/setup_playground_data.sql
