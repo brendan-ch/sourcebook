@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS course (
     FOREIGN KEY (course_term_id) REFERENCES course_term(course_term_id)
 );
 
+CREATE INDEX index_course_id ON course(course_id);
+
 CREATE TABLE IF NOT EXISTS user (
     -- for internal backend code
     user_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -133,3 +135,14 @@ BEGIN
     SET NEW.file_uuid = new_uuid;
 END //
 DELIMITER ;
+
+-- Views
+CREATE VIEW attendance_records_students_classes AS
+SELECT user.full_name, user.email, user.user_id, atr.attendance_session_id, atr.attendance_status, course.title, course.user_friendly_class_code
+FROM attendance_record atr
+INNER JOIN user
+        ON user.user_id = atr.user_id
+INNER JOIN attendance_session ats
+        ON ats.attendance_session_id = atr.attendance_session_id
+INNER JOIN course
+        ON course.course_id = ats.course_id;
