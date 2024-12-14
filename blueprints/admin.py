@@ -75,6 +75,8 @@ def export_student_count_per_class():
     GROUP BY course.course_id
     '''
 
+    os.makedirs('exports', exist_ok=True)
+
     cursor = course_repo.connection.cursor()
     cursor.execute(query)
     result = cursor.fetchall()
