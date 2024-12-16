@@ -64,6 +64,8 @@ button {
 
 .footer {
     color: var(--secondary-color);
+    min-width: 100%;
+    width: 0;
 }
 
 .footer a {
