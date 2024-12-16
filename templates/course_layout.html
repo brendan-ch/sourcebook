@@ -169,7 +169,7 @@
 
         <div class="footer">
             <p>{{ user.full_name }}</p>
-            <p>{{ user.email[0] }}****@{{ user }}</p>
+            <p>{{ user.email }}</p>
             {% if role.value == 2 or role.value == 3 %}
                 <a href="{{ course.starting_url_path }}/new">
                     [New page]
@@ -220,7 +220,7 @@
 
             <div class="footer">
                 <p>{{ user.full_name }}</p>
-                <p>{{ user.email[0] }}****@{{ user }}</p>
+                <p>{{ user.email }}</p>
                 {% if role.value == 2 or role.value == 3 %}
                     <a href="{{ course.starting_url_path }}/new">
                         [New page]
