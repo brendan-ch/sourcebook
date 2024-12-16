@@ -41,7 +41,8 @@
 
 
         .landscape-nav {
-            width: 14em;
+            min-width: 14em;
+            max-width: 14em;
 
             box-sizing: border-box;
             border-right: 1px solid var(--primary-color);
@@ -166,23 +167,21 @@
 
         <br >
 
-        <p class="footer">
-            Signed in as {{ user.full_name }} ({{ user.email }})
-            <br>
+        <div class="footer">
+            <p>{{ user.full_name }}</p>
+            <p>{{ user.email }}</p>
             {% if role.value == 2 or role.value == 3 %}
                 <a href="{{ course.starting_url_path }}/new">
                     [New page]
                 </a>
-                <br>
             {% endif %}
             <a href="/">
                 [View all classes]
             </a>
-            <br>
             <a href="/sign-out">
                 [Sign out]
             </a>
-        </p>
+        </div>
     </nav>
 
     <input type="checkbox" id="menu-toggle">
@@ -219,23 +218,21 @@
 
             <br >
 
-            <p class="footer">
-                Signed in as {{ user.full_name }} ({{ user.email }})
-                <br>
+            <div class="footer">
+                <p>{{ user.full_name }}</p>
+                <p>{{ user.email }}</p>
                 {% if role.value == 2 or role.value == 3 %}
                     <a href="{{ course.starting_url_path }}/new">
                         [New page]
                     </a>
-                    <br>
                 {% endif %}
                 <a href="/">
                     [View all classes]
                 </a>
-                <br>
                 <a href="/sign-out">
                     [Sign out]
                 </a>
-            </p>
+            </div>
         </div>
 
 
